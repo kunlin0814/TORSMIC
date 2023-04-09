@@ -1,0 +1,10 @@
+Encoding	Results
+3	HQ somatic
+7	LQ somatic
+4	LQ WT
+2	HQ rna_editing
+1	HQ germline
+5	LQ germline
+6	LQ rna_editing
+8	Somatic
+0	Germline
