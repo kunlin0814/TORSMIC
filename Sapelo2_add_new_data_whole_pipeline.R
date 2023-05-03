@@ -15,9 +15,9 @@ count_chrom_mut_info_project <- function(each_chrom_mut_info_project, two_projec
   num_project_gt1_cut_off <- length(gt1_cut_off)
   gt2_ratio <- paste(gt2_cut_off,collapse = ";")
   
-  final_sum <- list(In_number_bioproject = bioproject_num,
-                    num_project_with_gt2_cut_off = num_project_gt2_cut_off,
-                    num_project_with_gt1_cut_off = num_project_gt1_cut_off,
+  final_sum <- list(In_number_tumor_type = bioproject_num,
+                    num_tumor_type_with_gt2_cut_off = num_project_gt2_cut_off,
+                    num_tumor_type_with_gt1_cut_off = num_project_gt1_cut_off,
                     gt2_ratio =gt2_ratio)
   return (final_sum)
 }
@@ -189,6 +189,7 @@ total_sample_num <- length(unique(file$Sample_name))
 file[,Variant_in_all_sample_ratio := Sample_number/total_sample_num]
 ### each tumor type level
 file[,Variants_in_number_tumor_type:=length(unique(Bioproject)), keyby =.(Chrom_mut_info)]
+
 each_tumor_type_samples <- file[,.(Each_tumor_type_total_sample=length(unique(Sample_name))),keyby = .(Bioproject)]
 target_tumor_type <- unique(file[,.(Chrom_mut_info,Sample_name,Bioproject)])
 
