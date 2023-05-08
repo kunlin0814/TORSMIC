@@ -183,4 +183,5 @@ ${somatic_output_folder}/CDS_DB_SNP_filtering_${bsample}-gatk_file_withSamplenam
 ${somatic_output_folder}/CDS_DB_SNP_filtering_${bsample}-annovar_WithSampleName \
 ${bsample} \
 ${pan_cancer_mut_annovar} \
-${somatic_output_folder}/${bsample}_final_sample_somatic_sum.txt 
+${somatic_output_folder}/${bsample}_final_sample_somatic_sum.txt \
+${package_location}
