@@ -19,11 +19,10 @@ The following package/software is required to run the Tumor only RNA-seq somatic
 
 ## **Usage**
 
-The package use a Unix/Linux shell script (CMT-002_somatic_mutation_pipeline.sh) for each sample.
-After merging all of the sample results, then use pipeline_ml_mutation_filtering.sh to get the final results.
+The package use a Unix/Linux shell script.
 
-1. Downloading the package (Linux/Unix platform is required)
-2. Modify the shell script (CMT-002_somatic_mutation_pipeline.sh) by specifying the actual path to the whole package directory, the reference directory, the input BAM file mapped with STAR 2-pass alignments, the sample name, and the final pipeline results output
+Use CMT-002_somatic_mutation_pipeline.sh to run each sample.
+Merging the results from all of the samples, and run pipeline_ml_mutation_filtering.sh to get the final results.
 
 ### Steps to run the package
 
@@ -87,7 +86,12 @@ module load Perl/5.26.1-GCCcore-6.4.0
 
 ## **Other required file**
 
-To run the pipeline, you will need two extra files (human-dog protein sequence alignment files), but the file size is too large to put in GitHub.
+To run the pipeline, you will also need four extra files
+[1] two human-dog protein sequence alignment files  
+[2] annovar package to get dog gene annotation,
+[3] a db_snp files to filter known germline variants
+
+The above files size are too large to put in GitHub.
 Contact us if you need those files.
 
 Kun-Lin Ho <kh31516@uga.edu> Shaying Zhao <szhao@uga.edu>
