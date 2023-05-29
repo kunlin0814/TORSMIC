@@ -49,7 +49,7 @@ perl $annovar_index/annotate_variation.pl --buildver canFam3 ${vcf_file}-PASS-av
 # Use ensemble ID to append gene names
 python ${package_location}/Update_Add_GeneName.py \
 ${vcf_file}-PASS-avinput.exonic_variant_function \
-${package_location}/Canis_familiaris.CanFam3.1.99.chr.gtf_geneNamePair.txt \
+${data_source_location}/Canis_familiaris.CanFam3.1.99.chr.gtf_geneNamePair.txt \
 ${vcf_file}-PASS-avinput.exonic_variant_function_WithGeneName
 
 ## append the sample name to the gatk mutation calling result and annovar annotation result
