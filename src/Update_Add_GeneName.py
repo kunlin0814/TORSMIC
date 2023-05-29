@@ -1,8 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/python3
+
+"""
+The script will add the gene name to the annovar output from Canis_familiaris.CanFam3.1.99.chr.gtf_geneNamePair.txt
+"""
 
 import re
 import sys
-from unicodedata import name
 
 import pandas as pd
 
@@ -37,7 +40,7 @@ def extractAnnovarMutProtein(mut_info):
 
         return final_return
     except:
-        print("There is an error in sample ")
+        print("There is an error in this sample ")
 
 
 def append_gene_name(ensembl_gene_string, name_pair_dict):
@@ -48,8 +51,6 @@ def append_gene_name(ensembl_gene_string, name_pair_dict):
             gene_name_list.append(name_pair_dict[each_ensembl])
         else:
             gene_name_list.append("Unknown")
-    # ensembl_gene_list = pd.DataFrame(ensembl_gene_list, columns= ["Ensembl_gene"])
-    # merge_info = pd.merge(ensembl_gene_list,name_pair, on ="Ensembl_gene", how = 'left')
     ensembl_gene = ensembl_gene_string
     gene_name = ",".join(gene_name_list)
     final_return = pd.Series([ensembl_gene, gene_name])
@@ -90,9 +91,6 @@ name_pair = pd.read_csv(name_pair, sep="\t", header=None)
 name_pair.columns = ["Ensembl_gene", "Gene_name"]
 name_pair_dict = dict(zip(name_pair.Ensembl_gene, name_pair.Gene_name))
 
-# annovar_output_col = ['Line','Consequence','Annovar_info','Chrom','Start','End','Ref','Alt','Homo_hetro','10','11','12','13']
-# annovar_info.columns = annovar_output_col
-
 annovar_info.loc[:, ["Ensembl_gene", "Ensembl_transcripts", "Total_protein_change"]] = (
     annovar_info[2].apply(extractAnnovarMutProtein).to_numpy()
 )
@@ -105,5 +103,3 @@ annovar_info = annovar_info.drop(
     ["Ensembl_gene", "Ensembl_transcripts", "Total_protein_change"], axis=1
 )
 annovar_info.to_csv(final_out, sep="\t", index=False, header=None)
-
-# annovar_info.drop(["Ensembl_gene","Ensembl_transcripts","Total_protein_change"],axis = 1)
