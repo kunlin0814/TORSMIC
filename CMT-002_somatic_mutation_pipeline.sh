@@ -141,7 +141,7 @@ python ${scripts_location}/Sapelo2_extract_somatic_germline.py \
 ${somatic_output_folder}/${bsample}-gatk_file_withSamplename \
 ${somatic_output_folder}/${bsample}-annovar_WithSampleName \
 ${bsample} \
-${somatic_output_folder}/Before_pipeline_${bsample}_final_sample_somatic_sum.txt \
+${somatic_output_folder}/Before_pipeline_${bsample}_sample_somatic_sum.txt \
 ${package_location} 
 
 ### Load Java module
