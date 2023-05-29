@@ -1,4 +1,5 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 """
 The script will add the gene name to the annovar output from Canis_familiaris.CanFam3.1.99.chr.gtf_geneNamePair.txt
