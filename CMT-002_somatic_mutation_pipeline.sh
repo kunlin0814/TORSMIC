@@ -13,7 +13,6 @@ bsample=CMT-002
 base_folder=/scratch/kh31516/UGA
 ### For star GATK calling 
 bam_file_folder=${base_folder}/results/${bsample}/STAR ## the directory that contains bam align with STAR 2-pass  
-
 somatic_output_folder=${base_folder}/somatic_results/${bsample} ## the directory where you want to put your result for each sample. It can be separated from the bam file directory  
 reference='/work/szlab/dog_resouces/source'  ## the directory that contains canFam3 reference sequence 
 

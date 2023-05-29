@@ -7,15 +7,12 @@ The script will take each annovar output and DBSNP_filtering_gatk as inputs and 
 and c-bioportal data (after translated to human position)
 Notice:
 1. The final output might have fewers records than the original gatk vcf data, because the script will filter out the the records that don't have VAF info
-2. Now we use genome mutation(chrom+pos+ref+alt) identify in pan-cancer to identify pan-cancer records, 
-but still use transcript mutation(because only one transcript, so gene_aa_mutaiotn is the same) info to idenitfy c-bio
+2. We use genome mutation(chrom+pos+ref+alt) identify in pan-cancer to identify pan-cancer records
+3. We use transcript mutations (because only one transcript) info to idenitfy mutations that can be found in c-bio and cosmic database 
 
 It will create one output
-1. Final_sample_sum_out ( the df conatins the annovar info that has the mutation found in pan-cancer (include synonymous mutations),c-bioprotal and remained)
+1. Final_sample_sum_out ( the df conatins the annovar info that has the mutation found in pan-cancer (include synonymous mutations),c-bioprotal, cosmic and remained)
 
-### 1/28 we change pan-cancer annovar file as an argument 
-### 3/31/2022
-## include Cosmic dataset but follow the same logic as c-bioportal
 @author: kun-linho
 """
 
