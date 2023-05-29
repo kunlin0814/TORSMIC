@@ -8,24 +8,26 @@
 #SBATCH --output=CMT-002_extract_somatic.%j.out    # Standard output log
 #SBATCH --error=CMT-002_extract_somatic.%j.err     # Standard error log
 
-package_location=''
+package_location='/home/kh31516/kh31516_Lab_Share_script/IdentifiyNeoAntigene/TumorOnlySomatic'
+scripts_location=${package_location}/scripts
+data_source_location=${package_location}/data_source
 bsample=CMT-002
 base_folder=/scratch/kh31516/UGA
-### For star GATK calling 
-bam_file_folder=${base_folder}/results/${bsample}/STAR ## the directory that contains bam align with STAR 2-pass  
 somatic_output_folder=${base_folder}/somatic_results/${bsample} ## the directory where you want to put your result for each sample. It can be separated from the bam file directory  
+
+### For GATK calling on STAR 2-pass alignment 
+bam_file_folder=${base_folder}/results/${bsample}/STAR ## the directory that contains bam align with STAR 2-pass  
 reference='/work/szlab/dog_resouces/source'  ## the directory that contains canFam3 reference sequence 
 
 ### required file 
-pan_cancer_mut_annovar=${package_location}/Ge2_Pass_QC_Pan_Cancer_Final_Mutect_annovar_include_syn_mutation_summary.txt
-cds_file=${package_location}'/UniqueCainineCdsInterval.interval_list'
+cds_file=${data_source_location}'/UniqueCainineCdsInterval.interval_list'
 annovar_index='/work/szlab/Lab_shared_PanCancer/source/annovar_CanFam3.1.99.gtf' ## the directory that contains canine annovar annotation files  
 db_snp='/work/szlab/Lab_shared_PanCancer/source/DbSNP_canFam3_version151-DogSD_Broad_March2022.vcf' 
 
 
 mkdir -p $somatic_output_folder
 
-## a custom conda environment for Python 
+## a custom conda environment for running Python 
 ml Miniconda3/4.9.2
 source activate /home/kh31516/myenv/py38
 
@@ -115,23 +117,17 @@ ${somatic_output_folder}
 
 }
 
-run_GATK_calling(){
 
+####################################################
+## Steps for picard sorting and mark duplicates 
 picard ${bam_file_folder}
+## Steps for GATK mutation calling and then annotate gene with anovar
 gatk_annovar ${bam_file_folder}
 
-}
-
 
 ####################################################
-###### GATK mutation calling step
-run_GATK_calling 
+## Steps for Somatic mutation identification
 
-
-####################################################
-###### Steps for Somatic mutation identification
-
-module load SAMtools/1.9-GCC-8.3.0
 ## required input
 # gatk_vcf = sys.argv[1]
 # annovar_gene_file = sys.argv[2]
@@ -141,18 +137,17 @@ module load SAMtools/1.9-GCC-8.3.0
 # data_source_folder = sys.argv[6]
 
 ## get all of the information before the pipeline
-python ${package_location}/Sapelo2_extract_somatic_germline.py \
+python ${scripts_location}/Sapelo2_extract_somatic_germline.py \
 ${somatic_output_folder}/${bsample}-gatk_file_withSamplename \
 ${somatic_output_folder}/${bsample}-annovar_WithSampleName \
 ${bsample} \
-${pan_cancer_mut_annovar} \
-${somatic_output_folder}/Before_pipeline_${bsample}_final_sample_somatic_sum.txt
+${somatic_output_folder}/Before_pipeline_${bsample}_final_sample_somatic_sum.txt \
 ${package_location} 
 
 ### Load Java module
 ml Java
 # remove germline mutations found in the databse
-java -Xmx32g -cp  ${package_location}/ DbSNP_filtering \
+java -Xmx32g -cp  ${scripts_location}/ DbSNP_filtering \
 $db_snp \
 ${bam_file_folder}/${bsample}-rg_added_sorted_dedupped_split.realigned.bam.filter.vcf-PASS \
 ${bam_file_folder}/DB_SNP_filtering_${bsample}-rg_added_sorted_dedupped_split.realigned.bam.filter.vcf \
@@ -160,7 +155,7 @@ ${bam_file_folder}/Germline_filtered_${bsample}-rg_added_sorted_dedupped_split.r
 
 
 ### limit to CDS region
-python ${package_location}/Limit_vcf_to_CDS.py \
+python ${scripts_location}/Limit_vcf_to_CDS.py \
 ${bam_file_folder}/DB_SNP_filtering_${bsample}-rg_added_sorted_dedupped_split.realigned.bam.filter.vcf \
 $cds_file \
 ${bam_file_folder}/CDS_DB_SNP_filtering_${bsample}-rg_added_sorted_dedupped_split.realigned.bam.filter.vcf
@@ -179,10 +174,9 @@ ${somatic_output_folder}
 # final_sample_sum_out = sys.argv[4]
 
 ### classify the variants c-bio, cosmic, and remained
-python ${package_location}/Sapelo2_extract_somatic_germline.py \
+python ${scripts_location}/Sapelo2_extract_somatic_germline.py \
 ${somatic_output_folder}/CDS_DB_SNP_filtering_${bsample}-gatk_file_withSamplename \
 ${somatic_output_folder}/CDS_DB_SNP_filtering_${bsample}-annovar_WithSampleName \
 ${bsample} \
-${pan_cancer_mut_annovar} \
 ${somatic_output_folder}/${bsample}_final_sample_somatic_sum.txt \
 ${package_location}

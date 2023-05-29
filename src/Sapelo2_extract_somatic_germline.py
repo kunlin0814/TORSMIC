@@ -41,33 +41,49 @@ def extractVAF(gatk_info):
 gatk_vcf = sys.argv[1]
 annovar_gene_file = sys.argv[2]
 sample_name = sys.argv[3]
-pan_cancer_annovar_file = sys.argv[4]
 ## output data
-final_sample_sum_out = sys.argv[5]
-data_source_folder = sys.argv[6]
-module_loc = data_source_folder
+final_sample_sum_out = sys.argv[4]
+package_location = sys.argv[5]
+module_loc = package_location + "/" + "scripts"
 sys.path.append(module_loc)
 from somatic_germline_module import *
 
-data_source_folder = Path(data_source_folder)
+package_location = Path(package_location)
 
 translate_to = "human"
 
+pan_cancer_annovar_file = (
+    package_location
+    / "data_source"
+    / "Ge2_Pass_QC_Pan_Cancer_Final_Mutect_annovar_include_syn_mutation_summary.txt"
+)
 
-c_bioportal_file = data_source_folder / "all_studies_c-bio_portal_somatic_mutation.txt"
-comsmic_file = data_source_folder / "GRCh37_V95_Cosmic_somatic_mutation.txt"
+c_bioportal_file = (
+    package_location / "data_source" / "all_studies_c-bio_portal_somatic_mutation.txt"
+)
+comsmic_file = (
+    package_location / "data_source" / "GRCh37_V95_Cosmic_somatic_mutation.txt"
+)
 c_bio_translate_file = (
-    data_source_folder / "c-bio_Human_GR37_103_canine_3.199_sequenceAlignment.txt"
+    package_location
+    / "data_source"
+    / "c-bio_Human_GR37_103_canine_3.199_sequenceAlignment.txt"
 )
 cosmic_translate_file = (
-    data_source_folder / "COSMIC_V95_Human_GR37_93_canine_3.199_sequenceAlignment.txt"
+    package_location
+    / "data_source"
+    / "COSMIC_V95_Human_GR37_93_canine_3.199_sequenceAlignment.txt"
 )
-retro_gene_file = data_source_folder / "retro_gene_list.txt"
+retro_gene_file = package_location / "data_source" / "retro_gene_list.txt"
 c_biohuman_dog_transcript = (
-    data_source_folder / "c_bioportal_Human_GR37_103_dog_transcript_3.199.txt"
+    package_location
+    / "data_source"
+    / "c_bioportal_Human_GR37_103_dog_transcript_3.199.txt"
 )
 cosm_human_dog_transcript = (
-    data_source_folder / "COSMIC_Human_GR37_V95_93_dog_transcript_3.199.txt"
+    package_location
+    / "data_source"
+    / "COSMIC_Human_GR37_V95_93_dog_transcript_3.199.txt"
 )
 ## process annovar out and extract all of the annovar information
 retro_gene_list = pd.read_csv(retro_gene_file, sep="\n", header=None)
