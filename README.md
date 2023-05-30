@@ -10,7 +10,6 @@ The following package/software is required to run the Tumor only RNA-seq somatic
   Pandas >= 1.3
   Numpy >= 1.24
   Scikit-learn >= 1.0
-  SAMtools 1.9
   Java >= SE8
   Annovar (version after 2017 Jul16)
   GATK/3.8-1
@@ -22,8 +21,9 @@ The following package/software is required to run the Tumor only RNA-seq somatic
 
 The package use a Unix/Linux shell script.
 
-Use CMT-002_somatic_mutation_pipeline.sh to run each sample.
-Merging the results from all of the samples, and run pipeline_ml_mutation_filtering.sh to get the final results.
+1. Use CMT-002_somatic_mutation_pipeline.sh to run each sample.
+2. Merge the results from all of the samples
+3. Use pipeline_ml_mutation_filtering.sh to get the final results.
 
 ### Steps to run the package
 
@@ -35,6 +35,7 @@ package_location=''                   # path to the tumor-only somatic mutation 
 bsample=''                            # sample name you want to put
 base_folder=''                        # the parent folder of the final results for each sample
 bam_file_folder=''                    # path to the folder of the bam file aligned with STAR
+bio_tumor_label=''                    # put the tumor type first and the project name sep with '_' ex: OSA_PRJNA000001
 ref=''                                # path to the folder of canfam3
 annovar_index=''                      # path to the annovar package for gene annotation
 ```
@@ -45,7 +46,6 @@ annovar_index=''                      # path to the annovar package for gene ann
 ```
 package_location=''                   # path to the tumor-only somatic mutation identification package
 new_add_data=''                       # path to the table where you concat the final results for each sample
-bio_tumor_label=''                    # put the tumor type first and the project name sep with '_' ex: OSA_PRJNA000001
 pipeline_out_file_name=''             # output file from the pipeline without machine learning predictions
 ml_out_file_name=''                   # output file from the pipeline with machine learning predictions
 ```
@@ -59,7 +59,7 @@ d. Mammary Tumor - MT
 e. Oral melanoma - OM
 f. Osteosarcoma - OSA
 f. Prostate cancer - PRO
-If your sample is derived from the same tumor type shown above, please use the same acronym, but if your dataset doesn't have the tumor type shown above, then you can name your tumor type as you like.
+If your sample is derived from the same tumor type shown above, please use the same acronym, but if your dataset doesn't have the tumor type shown above, then you can name your tumor type as you like. Ex: OSA_PRJNA000001
 
 5.  Required package/software loading: the shell script contain lines for loading required package/software that are unique to the UGA (Sapelo2) platform. If your platform uses a different approach of loading package/software, you will need to make corresponding changes in the script for lines below.
 
@@ -67,13 +67,12 @@ If your sample is derived from the same tumor type shown above, please use the s
 module load GATK/3.8-1-Java-1.8.0_144
 module load picard/2.21.6-Java-11
 module load Java
-module load SAMtools/1.9-GCC-8.3.0
-module load R/4.0.0-foss-2019b (need to install data.table and tidyverse library)
-module load Miniconda3/4.9.2 (for python3)
+module load R/4.0.0-foss-2019b            (need to install data.table and tidyverse library)
+module load Miniconda3/4.9.2              (a custom conda envirnoment python3)
 module load Perl/5.26.1-GCCcore-6.4.0
 ```
 
-6.  Once the shell script execution is finished, the result file, "Sample_name.final_sample_somatic_sum.txt", will appear in the directory you specified, containing the following columns, see also example_final_somatic_mutation_identification.txt.
+6.  Once the shell script execution is finished, the result file, "\*final_sample_somatic_sum.txt", will appear in the directory you specified, which contains the following columns, see also example_final_somatic_mutation_identification.txt in the demo directory.
 
 ```
 [1] Sample_name
@@ -103,7 +102,6 @@ To run the pipeline, you will also need four extra files
 [2] annovar package to get dog gene annotation,
 [3] a db_snp files to filter known germline variants
 
-The above files size are too large to put in GitHub.
-Contact us if you need those files.
+Because the files size above are too large to put in GitHub, contact me if you need those files.
 
-Kun-Lin Ho <kh31516@uga.edu> Shaying Zhao <szhao@uga.edu>
+Kun-Lin Ho <abc730814@gmail.com>
