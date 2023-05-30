@@ -24,8 +24,7 @@ count_chrom_mut_info_project <- function(each_chrom_mut_info_project, two_projec
 
 package_location <- as.character(args[1])
 new_data_file <- as.character(args[2])
-bio_tumor_label <- as.character(args[3])
-out_file_name <- as.character(args[4])
+out_file_name <- as.character(args[3])
 
 
 module_location <- paste(package_location,'somatic_germline_module.R',sep ="/")
