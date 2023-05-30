@@ -1,4 +1,4 @@
-# Tumor only RAN-seq somatic mutation identification in canine
+# Tumor only RAN-seq somatic mutation identification in canine (TORSMIC)
 
 ## **Requirements**
 
@@ -6,18 +6,19 @@ The following package/software is required to run the Tumor only RNA-seq somatic
 
 ```
   Python 3.7
+  natsort >= 8.3
   Pandas >= 1.3
   Numpy >= 1.24
   Scikit-learn >= 1.0
   SAMtools 1.9
   Java >= SE8
-  Annovar (version 2017 Jul16)
+  Annovar (version after 2017 Jul16)
   GATK/3.8-1
   picard/2.21.6
   R Data.table 1.14
 ```
 
-## **Usage**
+## **General Usage**
 
 The package use a Unix/Linux shell script.
 
@@ -49,7 +50,18 @@ pipeline_out_file_name=''             # output file from the pipeline without ma
 ml_out_file_name=''                   # output file from the pipeline with machine learning predictions
 ```
 
-4.  Required package/software loading: the shell script contain lines for loading required package/software that are unique to the UGA (Sapelo2) platform. If your platform uses a different approach of loading package/software, you will need to make corresponding changes in the script for lines below.
+Notice:
+In step 4, we will add new data to our previous results to identify somatic mutations. To get the best results, we need to set the tumor type the same as our previous naming conventions. Our previous analyzed results include the following tumor types:
+a. Bladder tumor -BLA
+b. Glioma - GLM
+c. Hemangiosarcoma - HSA
+d. Mammary Tumor - MT
+e. Oral melanoma - OM
+f. Osteosarcoma - OSA
+f. Prostate cancer - PRO
+If your sample is derived from the same tumor type shown above, please use the same acronym, but if your dataset doesn't have the tumor type shown above, then you can name your tumor type as you like.
+
+5.  Required package/software loading: the shell script contain lines for loading required package/software that are unique to the UGA (Sapelo2) platform. If your platform uses a different approach of loading package/software, you will need to make corresponding changes in the script for lines below.
 
 ```
 module load GATK/3.8-1-Java-1.8.0_144
@@ -61,7 +73,7 @@ module load Miniconda3/4.9.2 (for python3)
 module load Perl/5.26.1-GCCcore-6.4.0
 ```
 
-5.  Once the shell script execution is finished, the result file, "Sample_name.final_sample_somatic_sum.txt", will appear in the directory you specified, containing the following columns, see also example_final_somatic_mutation_identification.txt.
+6.  Once the shell script execution is finished, the result file, "Sample_name.final_sample_somatic_sum.txt", will appear in the directory you specified, containing the following columns, see also example_final_somatic_mutation_identification.txt.
 
 ```
 [1] Sample_name
