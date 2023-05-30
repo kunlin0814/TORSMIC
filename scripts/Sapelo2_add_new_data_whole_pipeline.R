@@ -62,8 +62,8 @@ file[,Chrom_mut_info:=paste(Chrom,Start,Ref,Alt, sep ="_")]
 
 ### check if tumor type is enter
 col_miss <- setdiff(colnames(file),colnames(new_data))
-### add tumor type for those newly added data
-new_data[,(col_miss):=bio_tumor_label]
+# ### add tumor type for those newly added data
+# new_data[,(col_miss):=bio_tumor_label]
 new_data[Source=='C-bio'| Source=="Cosmic",Source:="Human",]
 if (nrow(new_data)!=0){
   file <- rbind(file,new_data)
