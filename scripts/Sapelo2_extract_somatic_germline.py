@@ -44,6 +44,7 @@ sample_name = sys.argv[3]
 ## output data
 final_sample_sum_out = sys.argv[4]
 package_location = sys.argv[5]
+bio_project = sys.argv[6]
 module_loc = package_location + "/" + "scripts"
 sys.path.append(module_loc)
 from somatic_germline_module import *
@@ -345,4 +346,5 @@ total_final_out = total_final_out.drop(["VAF_info"], axis=1)
 total_final_out = total_final_out.sort_values(by="Line", key=natsort_keygen()).drop(
     columns="Line"
 )
+total_final_out.loc[:, "Bioproject"] = bio_project
 total_final_out.to_csv(final_sample_sum_out, sep="\t", index=False)
