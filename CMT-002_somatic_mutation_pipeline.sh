@@ -17,6 +17,8 @@ bio_tumor='MT_PRJNA000001'          # put the tumor type first and then project 
 somatic_output_folder=${base_folder}/somatic_results/${bsample} ## the directory where you want to put your result for each sample. It can be separated from the bam file directory  
 scripts_location=${package_location}/scripts                    ## the directory where the scripts of the package locates
 data_source_location=${package_location}/data_source            ## the directory where the datasource of the package locates
+
+
 ### For GATK calling on STAR 2-pass alignment 
 bam_file_folder=${base_folder}/results/${bsample}/STAR ## the directory that contains bam align with STAR 2-pass  
 reference='/work/szlab/dog_resouces/source'  ## the directory that contains canFam3 reference sequence 
