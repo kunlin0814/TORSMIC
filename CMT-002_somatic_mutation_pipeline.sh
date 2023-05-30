@@ -9,12 +9,14 @@
 #SBATCH --error=CMT-002_extract_somatic.%j.err     # Standard error log
 
 package_location='/home/kh31516/kh31516_Lab_Share_script/IdentifiyNeoAntigene/TumorOnlySomatic'
-scripts_location=${package_location}/scripts
-data_source_location=${package_location}/data_source
-bsample=CMT-002
 base_folder=/scratch/kh31516/UGA
-somatic_output_folder=${base_folder}/somatic_results/${bsample} ## the directory where you want to put your result for each sample. It can be separated from the bam file directory  
+bsample=CMT-002                     # sample name
+bio_tumor='MT_PRJNA000001'          # put the tumor type first and then project name,  separate with '_' 
 
+
+somatic_output_folder=${base_folder}/somatic_results/${bsample} ## the directory where you want to put your result for each sample. It can be separated from the bam file directory  
+scripts_location=${package_location}/scripts                    ## the directory where the scripts of the package locates
+data_source_location=${package_location}/data_source            ## the directory where the datasource of the package locates
 ### For GATK calling on STAR 2-pass alignment 
 bam_file_folder=${base_folder}/results/${bsample}/STAR ## the directory that contains bam align with STAR 2-pass  
 reference='/work/szlab/dog_resouces/source'  ## the directory that contains canFam3 reference sequence 
@@ -132,9 +134,9 @@ gatk_annovar ${bam_file_folder}
 # gatk_vcf = sys.argv[1]
 # annovar_gene_file = sys.argv[2]
 # sample_name = sys.argv[3]
-# pan_cancer_annovar_file = sys.argv[4]
-# final_sample_sum_out = sys.argv[5]
-# data_source_folder = sys.argv[6]
+# final_sample_sum_out = sys.argv[4]
+# data_source_folder = sys.argv[5]
+# bio_tumor = sys.argv[6]
 
 ## get all of the information before the pipeline
 python ${scripts_location}/Sapelo2_extract_somatic_germline.py \
@@ -142,7 +144,8 @@ ${somatic_output_folder}/${bsample}-gatk_file_withSamplename \
 ${somatic_output_folder}/${bsample}-annovar_WithSampleName \
 ${bsample} \
 ${somatic_output_folder}/Before_pipeline_${bsample}_sample_somatic_sum.txt \
-${package_location} 
+${package_location} \
+${bio_tumor} 
 
 ### Load Java module
 ml Java
@@ -179,4 +182,5 @@ ${somatic_output_folder}/CDS_DB_SNP_filtering_${bsample}-gatk_file_withSamplenam
 ${somatic_output_folder}/CDS_DB_SNP_filtering_${bsample}-annovar_WithSampleName \
 ${bsample} \
 ${somatic_output_folder}/${bsample}_final_sample_somatic_sum.txt \
-${package_location}
+${package_location} \
+${bio_tumor} 
