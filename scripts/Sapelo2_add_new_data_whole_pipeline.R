@@ -22,13 +22,16 @@ count_chrom_mut_info_project <- function(each_chrom_mut_info_project, two_projec
   return (final_sum)
 }
 
-data_source <- as.character(args[1]) #'/home/kh31516/kh31516_Lab_Share_script/IdentifiyNeoAntigene/Complete_extract_somatic'
-setwd(data_source)
-source('somatic_germline_module.R')
+package_location <- as.character(args[1])
 new_data_file <- as.character(args[2])
 bio_tumor_label <- as.character(args[3])
 out_file_name <- as.character(args[4])
 
+
+module_location <- paste(package_location,'somatic_germline_module.R',sep ="/")
+data_source <- paste(package_location,'data_source',sep="/")
+setwd(data_source)
+source(module_location)
 
 sample_cut_off <- 10
 second_sample_cut_off <- 5
