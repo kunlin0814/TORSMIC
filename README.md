@@ -31,9 +31,10 @@ The package use a Unix/Linux shell script.
 2. Modify the shell scripts CMT-002_somatic_mutation_pipeline.sh for each sample and specify the actual path for the following directories.
 
 The overall structure looks like below:
-├── <base_foldery>/
-│ ├── star_align_bam_dir/each_sample
-│ ├── somatic_output_folder/each_sample
+
+base_foldery/
+base_foldery/star_align_bam_dir/each_sample
+base_foldery/somatic_output_folder/each_sample
 
 ```
 package_location=''                   # path to the tumor-only somatic mutation identification package
