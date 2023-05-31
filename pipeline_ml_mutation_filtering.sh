@@ -12,7 +12,6 @@
 ml R/4.0.0-foss-2019b
 package_location='/home/kh31516/kh31516_Lab_Share_script/IdentifiyNeoAntigene/Complete_extract_somatic' ## the location where you put the script
 new_add_data='/scratch/kh31516/Neoantigen/Tufts/Tufts_OSA_somatic_germline.txt.gz'                  ## the location of the table where you concat the final results for each sample
-bio_tumor_label='OSA_UGA'                                                        ## need to put tumor type first and the project name sep with '_'
 pipeline_out_file_name='/scratch/kh31516/Neoantigen/Tufts/Tufts_OSA_pipeline_filtering.txt' ## the output file from the pipeline without maching learning prediction
 ml_out_file_name='/scratch/kh31516/Neoantigen/Tufts/Tufts_OSA_ml_filtering.txt' ## the output file from the pipeline with maching learning prediction
 
@@ -23,8 +22,7 @@ ml_out_file_name='/scratch/kh31516/Neoantigen/Tufts/Tufts_OSA_ml_filtering.txt' 
 Rscript --vanilla ${package_location}/Sapelo2_add_new_data_whole_pipeline.R \
 ${package_location} \
 ${new_add_data} \
-${bio_tumor_label} \
-${pipeline_out_file_name} \
+${pipeline_out_file_name}
 
 ml Miniconda3/4.9.2
 source activate /home/kh31516/myenv/py38
