@@ -8,16 +8,17 @@
 #SBATCH --output=Step1_extract_somatic.%j.out    # Standard output log
 #SBATCH --error=Step1_extract_somatic.%j.err     # Standard error log
 
-
-ml R/4.0.0-foss-2019b
-package_location='/home/kh31516/kh31516_Lab_Share_script/IdentifiyNeoAntigene/TORSMIC' ## the location where you put the script
+#### The pathes that need to be changed
+package_location='/home/kh31516/kh31516_Lab_Share_script/IdentifiyNeoAntigene/TORSMIC' ## the location where you put the package
 new_add_data='/scratch/kh31516/UGA/UGA_OSA_somatic_germline.txt.gz'                  ## the location of the table which you concat all of the results from all the samples
 pipeline_out_file_name='/scratch/kh31516/UGA/UGA_OSA_pipeline_filtering.txt' ## the output file from the pipeline without maching learning prediction
 ml_out_file_name='/scratch/kh31516/UGA/UGA_OSA_ml_filtering.txt' ## the output file from the pipeline with maching learning prediction
+####
+
 scripts_location=${package_location}/scripts
 data_source_location=${package_location}/data_source
 
-
+ml R/4.0.0-foss-2019b
 # package_location <- as.character(args[1])
 # new_data_file <- as.character(args[2])
 # out_file_name <- as.character(args[3])
