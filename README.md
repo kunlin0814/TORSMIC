@@ -103,7 +103,7 @@ module load Perl/5.26.1-GCCcore-6.4.0
 
 ## **Other required file**
 
-To run the pipeline, you will also need four extra files
+To run the pipeline, you will also need four extra files.
 [1] two human-dog protein sequence alignment files  
 [2] annovar package to get dog gene annotation,
 [3] a db_snp files to filter known germline variants
