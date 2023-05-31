@@ -85,7 +85,6 @@ result = loaded_model.predict(X)
 # %%
 #### merge the predict results with the original df
 def mapBackResults(each_value):
-
     results = reverse_results_encoding_dict[each_value]
     return str(results)
 
