@@ -1,7 +1,5 @@
 library(data.table)
 library(tidyverse)
-library(gridExtra)
-library(HDInterval)
 
 append_element <- function(each_table){
   
@@ -10,18 +8,18 @@ append_element <- function(each_table){
   return (sum)
 }
 
-count_chrom_mut_info_project <- function(each_chrom_mut_info_project, two_project_cut = each_bioproject_cut, one_project_cut=0.4){
+count_chrom_mut_info_project <- function(each_chrom_mut_info_project, two_project_cut = gt1_tumor_type_cut, one_project_cut=one_tumor_type_cut){
   bioproject_num <- length(unique(each_chrom_mut_info_project$Bioproject))
-  each_chrom_mut_info_project_ratio <- unique(each_chrom_mut_info_project[,.(Each_bioproject_ratio,Bioproject)])$Each_bioproject_ratio
+  each_chrom_mut_info_project_ratio <- unique(each_chrom_mut_info_project[,.(Each_tumor_type_ratio,Bioproject)])$Each_tumor_type_ratio
   gt2_cut_off <- each_chrom_mut_info_project_ratio[each_chrom_mut_info_project_ratio >= two_project_cut]
   gt1_cut_off <- each_chrom_mut_info_project_ratio[each_chrom_mut_info_project_ratio >= one_project_cut]
   num_project_gt2_cut_off <- length(gt2_cut_off)
   num_project_gt1_cut_off <- length(gt1_cut_off)
   gt2_ratio <- paste(gt2_cut_off,collapse = ";")
   
-  final_sum <- list(In_number_bioproject = bioproject_num,
-                    num_project_with_gt2_cut_off = num_project_gt2_cut_off,
-                    num_project_with_gt1_cut_off = num_project_gt1_cut_off,
+  final_sum <- list(In_number_tumor_type = bioproject_num,
+                    num_tumor_type_with_gt2_cut_off = num_project_gt2_cut_off,
+                    num_tumor_type_with_gt1_cut_off = num_project_gt1_cut_off,
                     gt2_ratio =gt2_ratio)
   return (final_sum)
 }
