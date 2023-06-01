@@ -24,9 +24,6 @@ count_chrom_mut_info_project <- function(each_chrom_mut_info_project, two_projec
   return (final_sum)
 }
 
-
-
-
 filtering_5_step <- function(final_results){
   final_results[,Total_tumor_reads:=Ref_reads+Alt_reads]
   final_results <- final_results[VAF>=0.05 ,]
@@ -52,7 +49,6 @@ classify_sample_num <- function(sample_num){
 }
 
 check_proportion <- function(group_table,vaf_cut, midd_range,upper_range){
-  #group_table <- setDT(group_table)
   each_group_target <-  group_table
   VAF_values <- group_table$VAF
   total_sample <- length(VAF_values)
