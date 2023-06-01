@@ -1,27 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 """
 Created on Thu Oct 29 14:36:15 2021
 
 The script will take each annovar output and DBSNP_filtering_gatk as inputs and extract somatic mutation that overlaps with canine pan-cancer 
 and c-bioportal data (after translated to human position)
 Notice:
-1. The final output might have fewers records than the original gatk vcf data, because the script will filter out the the records that don't have VAF info
-2. We use genome mutation(chrom+pos+ref+alt) identify in pan-cancer to identify pan-cancer records
-3. We use transcript mutations (because only one transcript) info to idenitfy mutations that can be found in c-bio and cosmic database 
+1. The final output might have fewer records than the original gatk vcf data because the script will filter out the records that don't have VAF info.
+2. We use the genomic mutation (chrom+pos+ref+alt) identified in pan-cancer to identify pan-cancer records.
+3. We use transcript mutations (because only one transcript) info to identify mutations that can be found in c-bio and cosmic database.
 
-It will create one output
-1. Final_sample_sum_out ( the df conatins the annovar info that has the mutation found in pan-cancer (include synonymous mutations),c-bioprotal, cosmic and remained)
-
-@author: kun-linho
+It will create one output:
+1. Final_sample_sum_out (the df contains the annovar info that has the mutation found in pan-cancer (including synonymous mutations), c-bioprotal, cosmic, and remained)
 """
 
 import os
 import re
 import sys
+from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from natsort import index_natsorted, natsort_keygen, natsorted, order_by_index
+
+from somatic_germline_module import (
+    createDictforHumanDogSearch,
+    identify_species_counterparts,
+    processAnnovar,
+)
 
 
 def extractVAF(gatk_info):
@@ -31,26 +38,26 @@ def extractVAF(gatk_info):
         alt = int(vaf_info[1])
         # vaf_value = float(alt/(ref+alt))
     else:
-        ref = "No info provide"
-        alt = "No info provide"
+        ref = "No info provided"
+        alt = "No info provided"
 
     return pd.Series([ref, alt])
 
 
-### input data
+# Input data
 gatk_vcf = sys.argv[1]
 annovar_gene_file = sys.argv[2]
 sample_name = sys.argv[3]
-## output data
+# Output data
 final_sample_sum_out = sys.argv[4]
 package_location = sys.argv[5]
 bio_project = sys.argv[6]
-module_loc = package_location + "/" + "scripts"
+
+module_loc = os.path.join(package_location, "scripts")
 sys.path.append(module_loc)
 from somatic_germline_module import *
 
 package_location = Path(package_location)
-
 translate_to = "human"
 
 pan_cancer_annovar_file = (
@@ -58,11 +65,10 @@ pan_cancer_annovar_file = (
     / "data_source"
     / "Ge2_Pass_QC_Pan_Cancer_Final_Mutect_annovar_include_syn_mutation_summary.txt"
 )
-
 c_bioportal_file = (
     package_location / "data_source" / "all_studies_c-bio_portal_somatic_mutation.txt"
 )
-comsmic_file = (
+cosmic_file = (
     package_location / "data_source" / "GRCh37_V95_Cosmic_somatic_mutation.txt"
 )
 c_bio_translate_file = (
