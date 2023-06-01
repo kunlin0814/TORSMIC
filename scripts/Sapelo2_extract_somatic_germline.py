@@ -183,7 +183,7 @@ c_bio = pd.read_csv(c_bioportal_file, sep="\t")
 all_c_bio_list = ",".join(c_bio["Mut_type"]).split(",")
 
 ## process cosmic files
-cosmic = pd.read_csv(comsmic_file, sep="\t")
+cosmic = pd.read_csv(cosmic_file, sep="\t")
 ## create a total somatic mutation list idenitfied in c-bio
 all_cosmic_list = ",".join(cosmic["Mut_type"]).split(",")
 
