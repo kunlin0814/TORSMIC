@@ -15,6 +15,7 @@ It will create one output:
 1. Final_sample_sum_out (the df contains the annovar info that has the mutation found in pan-cancer (including synonymous mutations), c-bioprotal, cosmic, and remained)
 """
 
+import argparse
 import os
 import re
 import sys
@@ -44,14 +45,34 @@ def extractVAF(gatk_info):
     return pd.Series([ref, alt])
 
 
+# Create the argument parser
+parser = argparse.ArgumentParser(description="Script to extract somatic mutations")
+# Add the command-line arguments
+parser.add_argument("gatk_vcf", type=str, help="Path to the GATK VCF file")
+parser.add_argument("annovar_gene_file", type=str, help="Path to the Annovar gene file")
+parser.add_argument("sample_name", type=str, help="Name of the sample")
+parser.add_argument("final_sample_sum_out", type=str, help="Path to the output file")
+parser.add_argument("package_location", type=str, help="Path to the package location")
+parser.add_argument(
+    "bio_project",
+    type=str,
+    help="Tumor and bioproject information, separate with '_', ex: MT_PRJNA00001",
+)
+if len(sys.argv) == 1:
+    parser.print_usage()
+    sys.exit(1)
+# Parse the command-line arguments
+args = parser.parse_args()
+
 # Input data
-gatk_vcf = sys.argv[1]
-annovar_gene_file = sys.argv[2]
-sample_name = sys.argv[3]
+gatk_vcf = args.gatk_vcf
+annovar_gene_file = args.annovar_gene_file
+sample_name = args.sample_name
 # Output data
-final_sample_sum_out = sys.argv[4]
-package_location = sys.argv[5]
-bio_project = sys.argv[6]
+final_sample_sum_out = args.final_sample_sum_out
+package_location = args.package_location
+bio_project = args.bio_project
+
 
 module_loc = os.path.join(package_location, "scripts")
 sys.path.append(module_loc)
@@ -124,7 +145,7 @@ merge_gatk_annovar = merge_gatk_annovar.loc[
     (merge_gatk_annovar.Ref_reads != "No info provide")
     & (merge_gatk_annovar.Alt_reads != "No info provide")
 ]
-merge_gatk_annovar.loc[:, "VAF"] = merge_gatk_annovar["Alt_reads"].astype(float) / (
+merge_gatk_annovar.loc[:, "VAF"] = merge_gatk_annovar["Alt_reads"].astype(str) / (
     merge_gatk_annovar["Ref_reads"].astype(float)
     + merge_gatk_annovar["Alt_reads"].astype(float)
 )
@@ -314,13 +335,13 @@ c_bio_pass_uniq = cosm_pass.merge(c_bio_pass, how="outer", indicator=True).loc[
     lambda x: x["_merge"] == "right_only"
 ]
 
-if pan_cancer_pass.empty == False:
+if not pan_cancer_pass.empty:
     pan_cancer_pass.loc[:, "Source"] = "Pan-cancer"
 
-if c_bio_pass.empty == False:
+if not c_bio_pass.empty:
     c_bio_pass.loc[:, "Source"] = "C-bio"
 
-if cosm_pass_uniq.empty == False:
+if not cosm_pass_uniq.empty:
     cosm_pass_uniq.loc[:, "Source"] = "Cosmic"
 
 ## The majority of Cosmic is overlapped with C-bio, so if I found the same, remove it
