@@ -32,8 +32,8 @@ The overall directory structure should resemble the following:
 
 ```
 base_folder/
-base_folder/star_align_bam_dir/each_sample
-base_folder/somatic_output_folder/each_sample
+base_folder/star_align_bam_dir/each_sample/each_sample.bam
+base_folder/somatic_output_folder/each_sample/each_sample_final_sample_somatic_sum.txt
 ```
 
 ```bash
@@ -58,7 +58,7 @@ g. Prostate cancer - PRO
 
 If your sample is derived from the same tumor type as listed above, please use the same acronym. However, if your dataset doesn't match the tumor types mentioned above, you can name your tumor type as desired (e.g., OSA_PRJNA000001).
 
-3. Concatenate all the final results derived from `CMT-002_somatic_mutation_pipeline.sh` (files ending with `*final_sample_somatic_sum.txt`) into a single table.
+3. Concatenate all the final results derived from `CMT-002_somatic_mutation_pipeline.sh` (results file ending with `*final_sample_somatic_sum.txt`) into a single table.
 4. Run `pipeline_ml_mutation_filtering.sh` by specifying the actual path for the following directories.
 
 ```bash
@@ -116,7 +116,3 @@ Due to their large file size, these files cannot be included in the GitHub repos
 Contact Information:
 Kun-Lin Ho
 Email: abc730814@gmail.com
-
-```
-
-```
