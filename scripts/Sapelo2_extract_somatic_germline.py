@@ -25,12 +25,6 @@ import numpy as np
 import pandas as pd
 from natsort import index_natsorted, natsort_keygen, natsorted, order_by_index
 
-from somatic_germline_module import (
-    createDictforHumanDogSearch,
-    identify_species_counterparts,
-    processAnnovar,
-)
-
 
 def extractVAF(gatk_info):
     if len(gatk_info.split(":")) > 1:
@@ -76,7 +70,11 @@ bio_project = args.bio_project
 
 module_loc = os.path.join(package_location, "scripts")
 sys.path.append(module_loc)
-from somatic_germline_module import *
+from somatic_germline_module import (
+    createDictforHumanDogSearch,
+    identify_species_counterparts,
+    processAnnovar,
+)
 
 package_location = Path(package_location)
 translate_to = "human"
