@@ -210,6 +210,35 @@ def createDictforHumanDogSearch(clean_translate_table):
     return total_dict
 
 
+common_amino_acid_value = collections.OrderedDict(
+    sorted(
+        {
+            "A": 0.05,
+            "R": 0.05,
+            "N": 0.05,
+            "D": 0.05,
+            "C": 0.05,
+            "E": 0.05,
+            "Q": 0.05,
+            "G": 0.05,
+            "H": 0.05,
+            "I": 0.05,
+            "L": 0.05,
+            "K": 0.05,
+            "M": 0.05,
+            "F": 0.05,
+            "P": 0.05,
+            "S": 0.05,
+            "T": 0.05,
+            "W": 0.05,
+            "Y": 0.05,
+            "V": 0.05,
+            "X": 0.05,
+        }.items()
+    )
+)
+
+
 ## current function only care about SNV and fs, and these two is the only we can do the dog_human comparison
 ## the consequence results (fs,snv) are derived from annovar annotation results, other annotation might not work
 def identify_species_counterparts(
@@ -290,32 +319,3 @@ def identify_species_counterparts(
 #'Another species doesnt have the pos'
 #'Current pos cannot align to another species'
 #'Another species has no '+gene_name+' in the databases'
-
-
-common_amino_acid_value = collections.OrderedDict(
-    sorted(
-        {
-            "A": 0.05,
-            "R": 0.05,
-            "N": 0.05,
-            "D": 0.05,
-            "C": 0.05,
-            "E": 0.05,
-            "Q": 0.05,
-            "G": 0.05,
-            "H": 0.05,
-            "I": 0.05,
-            "L": 0.05,
-            "K": 0.05,
-            "M": 0.05,
-            "F": 0.05,
-            "P": 0.05,
-            "S": 0.05,
-            "T": 0.05,
-            "W": 0.05,
-            "Y": 0.05,
-            "V": 0.05,
-            "X": 0.05,
-        }.items()
-    )
-)
