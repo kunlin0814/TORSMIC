@@ -347,11 +347,7 @@ if not cosm_pass_uniq.empty:
 ## The majority of Cosmic is overlapped with C-bio, so if I found the same, remove it
 cosm_pass_uniq = cosm_pass_uniq.drop(columns="_merge")
 
-if (
-    (pan_cancer_pass.empty == True)
-    and (c_bio_pass.empty == True)
-    and (cosm_pass_uniq.empty == True)
-):
+if pan_cancer_pass.empty and c_bio_pass.empty and cosm_pass_uniq.empty:
     final_panancer_cbio_cosmic = pd.DataFrame([], columns=["Line", "Chrom_mut_info"])
 else:
     final_panancer_cbio_cosmic = pd.DataFrame()
@@ -361,17 +357,27 @@ else:
         cosm_pass_uniq
     ).drop_duplicates()
 
-## keep remained annovar files that are not in pan-cancer and c-bio for the future VAF examine
-pass_info = final_panancer_cbio_cosmic.Chrom_mut_info.unique().tolist()
-remained_df = target_merge_gatk_annovar[
-    ~target_merge_gatk_annovar["Chrom_mut_info"].isin(pass_info)
-].drop(columns=["C_bio_Human_counterpart", "Cosm_Human_counterpart"])
-remained_df.loc[:, "Source"] = "Remained"
-
-total_final_out = final_panancer_cbio_cosmic.append(remained_df).drop_duplicates()
-total_final_out = total_final_out.drop(["VAF_info"], axis=1)
-total_final_out = total_final_out.sort_values(by="Line", key=natsort_keygen()).drop(
-    columns="Line"
+# Keep remaining Annovar files not in pan-cancer and c-bio for future VAF examination
+passed_info = final_panancer_cbio_cosmic["Chrom_mut_info"].unique().tolist()
+remained_df = (
+    target_merge_gatk_annovar[
+        ~target_merge_gatk_annovar["Chrom_mut_info"].isin(passed_info)
+    ]
+    .drop(columns=["C_bio_Human_counterpart", "Cosm_Human_counterpart"])
+    .assign(Source="Remained")
 )
-total_final_out.loc[:, "Bioproject"] = bio_project
+
+# Combine remaining data with passed data
+total_final_out = final_panancer_cbio_cosmic.append(remained_df).drop_duplicates()
+
+# Remove 'VAF_info' column and sort the DataFrame
+total_final_out = (
+    total_final_out.drop("VAF_info", axis=1)
+    .sort_values(by="Line", key=natsort_keygen())
+    .drop(columns="Line")
+)
+
+# Assign 'Bioproject' value to the DataFrame
+total_final_out["Bioproject"] = bio_project
+
 total_final_out.to_csv(final_sample_sum_out, sep="\t", index=False)
