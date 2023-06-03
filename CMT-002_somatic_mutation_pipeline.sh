@@ -139,13 +139,6 @@ gatk_annovar "${bam_file_folder}"
 ####################################################
 ## Steps for Somatic mutation identification
 
-## required input
-# gatk_vcf = sys.argv[1]
-# annovar_gene_file = sys.argv[2]
-# sample_name = sys.argv[3]
-# final_sample_sum_out = sys.argv[4]
-# data_source_folder = sys.argv[5]
-# bio_tumor = sys.argv[6]
 
 ## get all of the information before the pipeline
 python "${scripts_location}/Sapelo2_extract_somatic_germline.py" \
@@ -179,12 +172,6 @@ annovar_gene_annotation \
 "CDS_DB_SNP_filtering_${bsample}-annovar_WithSampleName" \
 "${somatic_output_folder}"
 
-### input data
-# vcf_file = sys.argv[1]
-# annovar_gene_file = sys.argv[2]
-# SRR_run = sys.argv[3]
-## output data
-# final_sample_sum_out = sys.argv[4]
 
 ### classify the variants c-bio, cosmic, and remained
 python "${scripts_location}/Sapelo2_extract_somatic_germline.py" \
