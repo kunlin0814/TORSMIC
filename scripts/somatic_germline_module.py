@@ -76,9 +76,9 @@ def extractAnnovarMutProtein(mut_info):
 ## Line','Consequence','Gene_name','Chrom','Start','End','Ref','Alt','Sample_name','Ensembl_gene','Ensembl_transcripts','Total_protein_change'
 ## the reason I keep line is for future used for VAF calculation
 def processAnnovar(annovar_gene_file, retro_gene_file, sample_name):
-    retro_gene_list = pd.read_csv(retro_gene_file, sep="\n", header=None)
-    retro_gene_list = retro_gene_list[0].to_list()
+    retro_gene_list = pd.read_csv(retro_gene_file, sep="\n", header=None)[0].tolist()
     annovar_gene_data = pd.read_csv(annovar_gene_file, sep="\t", header=None)
+    # Define column names for Annovar gene data
     annovar_output_col = [
         "Line",
         "Consequence",
@@ -100,7 +100,8 @@ def processAnnovar(annovar_gene_file, retro_gene_file, sample_name):
     annovar_gene_data.loc[
         :, ["Ensembl_gene", "Ensembl_transcripts", "Total_protein_change"]
     ] = (annovar_gene_data["Annovar_info"].apply(extractAnnovarMutProtein).to_numpy())
-    ## in case the Ensembl_transcripts and Total_protein_change are not in the same length, I add "No_Info_Provided" in the extractAnnovarMutProtein steps, so we need to exclude that information
+    ## in case the Ensembl_transcripts and Total_protein_change are not in the same length,
+    ## I add "No_Info_Provided" in the extractAnnovarMutProtein steps, so we need to exclude that information
     annovar_gene_data = annovar_gene_data.loc[
         (annovar_gene_data["Ensembl_transcripts"] != "No_Info_Provided")
         & (annovar_gene_data["Total_protein_change"] != "No_Info_Provided")
@@ -122,28 +123,26 @@ def processAnnovar(annovar_gene_file, retro_gene_file, sample_name):
             "Total_protein_change",
         ],
     ]
-    target_annovar_info.loc[:, "Gene_name"] = (
-        target_annovar_info["Gene_name"].astype(str).apply(lambda x: x.split(","))
+    # Split multiple values in columns
+    target_annovar_info["Gene_name"] = (
+        target_annovar_info["Gene_name"].astype(str).str.split(",")
     )
-    target_annovar_info.loc[:, "Ensembl_gene"] = (
-        target_annovar_info["Ensembl_gene"].astype(str).apply(lambda x: x.split(","))
+    target_annovar_info["Ensembl_gene"] = (
+        target_annovar_info["Ensembl_gene"].astype(str).str.split(",")
     )
-    target_annovar_info.loc[:, "Ensembl_transcripts"] = (
-        target_annovar_info["Ensembl_transcripts"]
-        .astype(str)
-        .apply(lambda x: x.split(","))
+    target_annovar_info["Ensembl_transcripts"] = (
+        target_annovar_info["Ensembl_transcripts"].astype(str).str.split(",")
     )
-    target_annovar_info.loc[:, "Total_protein_change"] = (
-        target_annovar_info["Total_protein_change"]
-        .astype(str)
-        .apply(lambda x: x.split(","))
+    target_annovar_info["Total_protein_change"] = (
+        target_annovar_info["Total_protein_change"].astype(str).str.split(",")
     )
     #### unnesting is the same as explode but just in case pandas version is < 1.3
     # target_annovar_info = unnesting(target_annovar_info,['Ensembl_transcripts','Total_protein_change'])
     target_annovar_info = target_annovar_info.explode(
         ["Gene_name", "Ensembl_gene", "Ensembl_transcripts", "Total_protein_change"]
     )
-    target_annovar_info = target_annovar_info.loc[
+    # Exclude entries with "No_Info_Provided" again
+    target_annovar_info = target_annovar_info[
         (target_annovar_info["Ensembl_transcripts"] != "No_Info_Provided")
         & (target_annovar_info["Total_protein_change"] != "No_Info_Provided")
     ]
@@ -161,6 +160,7 @@ def processAnnovar(annovar_gene_file, retro_gene_file, sample_name):
         + "_"
         + target_annovar_info["Total_protein_change"]
     )
+    # Drop duplicate entries
     target_annovar_info = target_annovar_info.drop_duplicates()
     return target_annovar_info
 
@@ -184,31 +184,23 @@ def createDictforHumanDogSearch(clean_translate_table):
     human_aa_dict = {}
     dog_aa_dict = {}
 
-    for i, j in enumerate(clean_translate_table):
-        gene = j[1]
-        human_pos = j[2]
-        dog_pos = j[3]
-        human_aa = j[4]
-        dog_aa = j[5]
+    for entry in clean_translate_table:
+        gene = entry[1]
+        human_pos = entry[2]
+        dog_pos = entry[3]
+        human_aa = entry[4]
+        dog_aa = entry[5]
 
-        if gene in dog_human_pos_dict.keys():
-            human_dog_pos_dict[gene][human_pos] = dog_pos
-            dog_human_pos_dict[gene][dog_pos] = human_pos
-            human_aa_dict[gene][human_pos] = human_aa
-            dog_aa_dict[gene][dog_pos] = dog_aa
-
-        else:
+        if gene not in human_dog_pos_dict:
             human_dog_pos_dict[gene] = {}
-            human_dog_pos_dict[gene][human_pos] = dog_pos
-
             dog_human_pos_dict[gene] = {}
-            dog_human_pos_dict[gene][dog_pos] = human_pos
-
             human_aa_dict[gene] = {}
-            human_aa_dict[gene][human_pos] = human_aa
-
             dog_aa_dict[gene] = {}
-            dog_aa_dict[gene][dog_pos] = dog_aa
+
+        human_dog_pos_dict[gene][human_pos] = dog_pos
+        dog_human_pos_dict[gene][dog_pos] = human_pos
+        human_aa_dict[gene][human_pos] = human_aa
+        dog_aa_dict[gene][dog_pos] = dog_aa
 
     total_dict["human_dog_pos_dict"] = human_dog_pos_dict
     total_dict["dog_human_pos_dict"] = dog_human_pos_dict
@@ -228,17 +220,14 @@ def identify_species_counterparts(
     dog_aa_dict,
     translate_to,
 ):
-    gene_name = gene_mut_info.split("_")[0]
-    mut_info = gene_mut_info.split("_")[1]
+    gene_name, mut_info = gene_mut_info.split("_")
 
     ## if we want to translate to dog, then we need to use human_dog_pos_dict and vise versa
     if translate_to.upper() == "DOG":
-        ref_dict = human_dog_pos_dict
-        alt_dict = dog_human_pos_dict
+        ref_dict, alt_dict = human_dog_pos_dict, dog_human_pos_dict
         other_species_aa_dict = dog_aa_dict
     else:
-        ref_dict = dog_human_pos_dict
-        alt_dict = human_dog_pos_dict
+        ref_dict, alt_dict = dog_human_pos_dict, human_dog_pos_dict
         other_species_aa_dict = human_aa_dict
 
     pos = 0
@@ -248,7 +237,6 @@ def identify_species_counterparts(
     ## consider three situation, SNV (stop_gain), fs, and other can't process (delines can't process because we don't know the downstream)
 
     if "fs" in mut_info:
-
         if re.search(r"([A-Za-z])(\d+)([A-Za-z]*)(fs)", mut_info):
             fs_info = re.search(r"([A-Za-z])(\d+)([A-Za-z]*)(fs)", mut_info)
             wt = fs_info.group(1)
@@ -271,7 +259,6 @@ def identify_species_counterparts(
         other_counterparts = "No Counterparts"
 
     if other_counterparts == " ":
-
         if gene_name in alt_dict.keys():
             # dog_target_gene_pos = set(translate_allign_table.loc[(translate_allign_table.Gene ==target_gene)]['QueryIdx'])
             ## if snv or fs
