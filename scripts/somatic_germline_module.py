@@ -222,7 +222,6 @@ def identify_species_counterparts(
 ):
     gene_name, mut_info = gene_mut_info.split("_")
 
-    ## if we want to translate to dog, then we need to use human_dog_pos_dict and vise versa
     if translate_to.upper() == "DOG":
         ref_dict, alt_dict = human_dog_pos_dict, dog_human_pos_dict
         other_species_aa_dict = dog_aa_dict
@@ -231,50 +230,32 @@ def identify_species_counterparts(
         other_species_aa_dict = human_aa_dict
 
     pos = 0
-    other_counterparts = " "
-
-    ## extract mutation data
-    ## consider three situation, SNV (stop_gain), fs, and other can't process (delines can't process because we don't know the downstream)
+    other_counterparts = "No Counterparts"
 
     if "fs" in mut_info:
-        if re.search(r"([A-Za-z])(\d+)([A-Za-z]*)(fs)", mut_info):
-            fs_info = re.search(r"([A-Za-z])(\d+)([A-Za-z]*)(fs)", mut_info)
-            wt = fs_info.group(1)
-            pos = int(fs_info.group(2))
-            mut = ""
-            # final_mut_info = wt+loc+fs
+        fs_info = re.search(r"([A-Za-z])(\d+)([A-Za-z]*)(fs)", mut_info)
+        if fs_info:
+            wt, pos, _, _ = fs_info.groups()
             situtation = "fs"
-        else:
-            other_counterparts = "No Counterparts"
-
     ## SNV or stop gain
     elif re.search(r"([A-Za-z])(\d+)([A-Z])", mut_info):
         SNV_info = re.search(r"([A-Za-z])(\d+)([A-Z])", mut_info)
-        wt = SNV_info.group(1)
-        pos = int(SNV_info.group(2))
-        mut = SNV_info.group(3)
+        if SNV_info:
+            wt, pos, mut = SNV_info.groups()
+            situtation = "SNV"
 
-        situtation = "SNV"
-    else:  ## if not SNV or fs types, just directly skip it (include delines)
-        other_counterparts = "No Counterparts"
-
-    if other_counterparts == " ":
-        if gene_name in alt_dict.keys():
-            # dog_target_gene_pos = set(translate_allign_table.loc[(translate_allign_table.Gene ==target_gene)]['QueryIdx'])
-            ## if snv or fs
-            if (
-                (wt.upper() in common_amino_acid_value.keys())
-                and (mut.upper() in common_amino_acid_value.keys())
-            ) or ((wt.upper() in common_amino_acid_value.keys()) and mut == ""):
-                if pos in ref_dict[gene_name].keys():
+    if situtation:
+        if gene_name in alt_dict:
+            if (wt.upper() in common_amino_acid_value) and (
+                mut.upper() in common_amino_acid_value
+            ):
+                if pos in ref_dict[gene_name]:
                     other_species_pos = ref_dict[gene_name][pos]
-
                     if other_species_pos in other_species_aa_dict[gene_name]:
                         other_species_wt = other_species_aa_dict[gene_name][
                             other_species_pos
                         ]
                         given_species_mut = mut
-                        ## if mutation is synonymous SNV, then just replace the location and use counterparts WT for both aa
                         if wt == mut:
                             other_counterparts = (
                                 gene_name
@@ -283,13 +264,10 @@ def identify_species_counterparts(
                                 + str(other_species_pos)
                                 + other_species_wt
                             )
-
                         elif given_species_mut == other_species_wt:
                             other_counterparts = "No Mutation"
                         else:
                             if situtation == "SNV":
-                                ## if the mutation is synonymous SNV
-
                                 other_counterparts = (
                                     gene_name
                                     + "_"
@@ -305,20 +283,13 @@ def identify_species_counterparts(
                                     + str(other_species_pos)
                                     + "fs"
                                 )
-
-                    else:
-                        other_counterparts = "No Counterparts"
-                        #'Another species doesnt have the pos'
-                else:
-                    other_counterparts = "No Counterparts"
-                    #'Current pos cannot align to another species'
-            else:
-                other_counterparts = "No Counterparts"
-        else:
-            other_counterparts = "No Counterparts"
-            #'Another species has no '+gene_name+' in the databases'
-
     return other_counterparts
+
+
+# The following three situations will have "No Counterparts"
+#'Another species doesnt have the pos'
+#'Current pos cannot align to another species'
+#'Another species has no '+gene_name+' in the databases'
 
 
 common_amino_acid_value = collections.OrderedDict(
