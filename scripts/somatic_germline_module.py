@@ -19,6 +19,19 @@ import numpy as np
 import pandas as pd
 
 
+def extractVAF(gatk_info):
+    if len(gatk_info.split(":")) > 1:
+        vaf_info = gatk_info.split(":")[1].split(",")
+        ref = int(vaf_info[0])
+        alt = int(vaf_info[1])
+        # vaf_value = float(alt/(ref+alt))
+    else:
+        ref = "No info provided"
+        alt = "No info provided"
+
+    return pd.Series([ref, alt])
+
+
 ## the function is same as df.explode but in case pandas version < 1.3
 ## there is a extra function
 def unnesting(df, explode):
@@ -67,6 +80,28 @@ def extractAnnovarMutProtein(mut_info):
         return final_return
     except:
         print("There is an error in sample " + sample_name)
+
+
+def process_gatk_output(gatk_vcf):
+    gatk_data = pd.read_csv(gatk_vcf, sep="\t", header=None)
+    gatk_data.loc[:, "Line"] = ["line" + str(i + 1) for i in range(0, len(gatk_data))]
+    gatk_data.loc[:, ["Ref_reads", "Alt_reads"]] = (
+        gatk_data[9].astype(str).apply(extractVAF).to_numpy()
+    )
+
+    target_gatk = gatk_data.loc[:, [0, 3, 4, 9, 10, "Ref_reads", "Alt_reads", "Line"]]
+    target_gatk.columns = [
+        "Chrom",
+        "Ref",
+        "Alt",
+        "VAF_info",
+        "Sample_name",
+        "Ref_reads",
+        "Alt_reads",
+        "Line",
+    ]
+
+    return target_gatk
 
 
 ## this function will process annovar output and extract all the protein changes in the annovar file (not only one protein change)
