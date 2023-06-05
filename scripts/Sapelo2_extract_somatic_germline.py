@@ -52,7 +52,7 @@ sample_name = args.sample_name
 final_sample_sum_out = args.final_sample_sum_out
 package_location = args.package_location
 bio_project = args.bio_project
-
+# Load the module
 module_loc = os.path.join(package_location, "scripts")
 sys.path.append(module_loc)
 from somatic_germline_module import *
