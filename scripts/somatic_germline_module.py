@@ -276,6 +276,10 @@ common_amino_acid_value = collections.OrderedDict(
 
 ## current function only care about SNV and fs, and these two is the only we can do the dog_human comparison
 ## the consequence results (fs,snv) are derived from annovar annotation results, other annotation might not work
+# The following situations will have "No Counterparts"
+#'Another species doesnt have the pos'
+#'Current pos cannot align to another species'
+#'Another species has no '+gene_name+' in the databases'
 def identify_species_counterparts(
     gene_mut_info,
     human_dog_pos_dict,
@@ -347,10 +351,58 @@ def identify_species_counterparts(
                                     + str(other_species_pos)
                                     + "fs"
                                 )
+
     return other_counterparts
 
 
-# The following three situations will have "No Counterparts"
-#'Another species doesnt have the pos'
-#'Current pos cannot align to another species'
-#'Another species has no '+gene_name+' in the databases'
+## this function will select the mutations that can be found in human somatic db from (C-bio, or cosmeic) after human-dog position translation
+def extract_human_somatic(
+    mutation_file,
+    human_dog_alginemt_file,
+    human_dog_transcript,
+    target_merge_gatk_annovar,
+    translate_to,
+):
+    mutation_data = pd.read_csv(mutation_file, sep="\t")
+    all_mutation_list = set(mutation_data["Mut_type"])
+
+    translate_allign_table = pd.read_csv(human_dog_alginemt_file, sep="\t")
+    translate_allign_table.loc[
+        translate_allign_table["QueryAA"] == "-", "QueryIdx"
+    ] = "-"
+    clean_translate_table = translate_allign_table[
+        translate_allign_table["QueryIdx"] != "-"
+    ]
+
+    total_summary_dict = createDictforHumanDogSearch(clean_translate_table.to_records())
+
+    target_merge_gatk_annovar["Human_counterpart"] = target_merge_gatk_annovar[
+        "Gene_mut_info"
+    ].apply(
+        identify_species_counterparts,
+        human_dog_pos_dict=total_summary_dict["human_dog_pos_dict"],
+        dog_human_pos_dict=total_summary_dict["dog_human_pos_dict"],
+        human_aa_dict=total_summary_dict["human_aa_dict"],
+        dog_aa_dict=total_summary_dict["dog_aa_dict"],
+        translate_to=translate_to,
+    )
+
+    human_dog_transcript_info = pd.read_csv(
+        human_dog_transcript,
+        sep="\t",
+        header=None,
+        names=["Gene_name", "Human_transcripts", "Dog_transcripts"],
+    )
+
+    transcript_match_target_annovar = target_merge_gatk_annovar.loc[
+        target_merge_gatk_annovar["Ensembl_transcripts"].isin(
+            human_dog_transcript_info["Dog_transcripts"]
+        )
+    ]
+
+    pass_data = transcript_match_target_annovar.loc[
+        transcript_match_target_annovar["Human_counterpart"].isin(all_mutation_list)
+    ]
+    pass_data = pass_data.drop(columns="Human_counterpart")
+
+    return pass_data

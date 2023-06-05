@@ -173,105 +173,22 @@ pan_cancer_pass = target_merge_gatk_annovar[
 
 ######### Process human somatic data
 ## process c-bio files
-c_bio = pd.read_csv(c_bioportal_file, sep="\t")
-## create a total somatic mutation list idenitfied in c-bio
-all_c_bio_list = ",".join(c_bio["Mut_type"]).split(",")
-
-## do human-dog mutation translation and filter with mutations found in c-bioportal
-#### processing human_dog_translate_allign_file
-c_biotranslate_allign_table = pd.read_csv(c_bio_translate_file, sep="\t")
-### fill up the gap with '-' , otherwise, it will have many same position even the alignment is a gap
-c_biotranslate_allign_table.loc[
-    c_biotranslate_allign_table["QueryAA"] == "-", "QueryIdx"
-] = "-"
-clean_translate_table = c_biotranslate_allign_table[
-    c_biotranslate_allign_table["QueryIdx"] != "-"
-]
-clean_translate_table = clean_translate_table.to_records()
-## a function to create four dict that can be used to do human-dog mutation translation
-c_biototal_summary_dict = createDictforHumanDogSearch(clean_translate_table)
-
-target_merge_gatk_annovar["C_bio_Human_counterpart"] = target_merge_gatk_annovar[
-    "Gene_mut_info"
-].apply(
-    identify_species_counterparts,
-    human_dog_pos_dict=c_biototal_summary_dict["human_dog_pos_dict"],
-    dog_human_pos_dict=c_biototal_summary_dict["dog_human_pos_dict"],
-    human_aa_dict=c_biototal_summary_dict["human_aa_dict"],
-    dog_aa_dict=c_biototal_summary_dict["dog_aa_dict"],
-    translate_to=translate_to,
-)
-
-c_bio_human_dog_transcript_info = pd.read_csv(
+c_bio_pass = extract_human_somatic(
+    c_bioportal_file,
+    c_bio_translate_file,
     c_biohuman_dog_transcript,
-    sep="\t",
-    header=None,
-    names=["Gene_name", "Human_transcripts", "Dog_transcripts"],
-)
-c_biotranscript_match_target_annovar = target_merge_gatk_annovar.loc[
-    target_merge_gatk_annovar["Ensembl_transcripts"].isin(
-        c_bio_human_dog_transcript_info["Dog_transcripts"]
-    )
-]
-c_bio_pass = c_biotranscript_match_target_annovar.loc[
-    c_biotranscript_match_target_annovar["C_bio_Human_counterpart"].isin(all_c_bio_list)
-]
-
-## remove the C_bio_Human_counterpart column to merge with pan-cancer pass
-c_bio_pass = c_bio_pass.drop(columns="C_bio_Human_counterpart")
-
-## do human-dog mutation translation and filter with mutations found in COSMIC
-## process cosmic files
-cosmic = pd.read_csv(cosmic_file, sep="\t")
-## create a total somatic mutation list idenitfied in c-bio
-all_cosmic_list = ",".join(cosmic["Mut_type"]).split(",")
-
-#### processing human_dog_translate_allign_file
-cosm_translate_allign_table = pd.read_csv(cosmic_translate_file, sep="\t")
-### fill up the gap with '-' , otherwise, it will have many same position even the alignment is a gap
-cosm_translate_allign_table.loc[
-    cosm_translate_allign_table["QueryAA"] == "-", "QueryIdx"
-] = "-"
-cosm_clean_translate_table = cosm_translate_allign_table[
-    cosm_translate_allign_table["QueryIdx"] != "-"
-]
-cosm_clean_translate_table = cosm_clean_translate_table.to_records()
-## a function to create four dict that can used to search ini the future
-cosm_total_summary_dict = createDictforHumanDogSearch(cosm_clean_translate_table)
-
-
-### creating human_dog_translate file end ###
-target_merge_gatk_annovar["Cosm_Human_counterpart"] = target_merge_gatk_annovar[
-    "Gene_mut_info"
-].apply(
-    identify_species_counterparts,
-    human_dog_pos_dict=cosm_total_summary_dict["human_dog_pos_dict"],
-    dog_human_pos_dict=cosm_total_summary_dict["dog_human_pos_dict"],
-    human_aa_dict=cosm_total_summary_dict["human_aa_dict"],
-    dog_aa_dict=cosm_total_summary_dict["dog_aa_dict"],
-    translate_to=translate_to,
+    target_merge_gatk_annovar,
+    translate_to,
 )
 
-cosm_human_dog_transcript_info = pd.read_csv(
+cosm_pass = extract_human_somatic(
+    cosmic_file,
+    cosmic_translate_file,
     cosm_human_dog_transcript,
-    sep="\t",
-    header=None,
-    names=["Gene_name", "Human_transcripts", "Dog_transcripts"],
+    target_merge_gatk_annovar,
+    translate_to,
 )
 
-cosm_transcript_match_target_annovar = target_merge_gatk_annovar.loc[
-    target_merge_gatk_annovar["Ensembl_transcripts"].isin(
-        cosm_human_dog_transcript_info["Dog_transcripts"]
-    )
-]
-cosm_pass = cosm_transcript_match_target_annovar.loc[
-    cosm_transcript_match_target_annovar["Cosm_Human_counterpart"].isin(all_cosmic_list)
-]
-
-## remove the Cosm_Human_counterpart column to merge with pan-cancer pass
-cosm_pass = cosm_pass.drop(
-    columns=["C_bio_Human_counterpart", "Cosm_Human_counterpart"]
-)
 
 cosm_pass_uniq = cosm_pass.merge(c_bio_pass, how="outer", indicator=True).loc[
     lambda x: x["_merge"] == "left_only"
@@ -296,16 +213,14 @@ if pan_cancer_pass.empty and c_bio_pass.empty and cosm_pass_uniq.empty:
     final_panancer_cbio_cosmic = pd.DataFrame([], columns=["Line", "Chrom_mut_info"])
 else:
     final_panancer_cbio_cosmic = pd.DataFrame()
-    final_panancer_cbio_cosmic = final_panancer_cbio_cosmic.append(pan_cancer_pass)
-    final_panancer_cbio_cosmic = final_panancer_cbio_cosmic.append(c_bio_pass)
-    final_panancer_cbio_cosmic = final_panancer_cbio_cosmic.append(
-        cosm_pass_uniq
-    ).drop_duplicates()
+    final_panancer_cbio_cosmic = pd.concat(
+        [pan_cancer_pass, c_bio_pass, cosm_pass_uniq], ignore_index=True
+    ).drop_duplicates(subset=["Line", "Chrom_mut_info"])
 
 # Keep remaining Annovar files not in pan-cancer and c-bio for future VAF examination
 passed_info = final_panancer_cbio_cosmic["Chrom_mut_info"].unique().tolist()
 
-## remained mutations are those not found in c-bio, cosmic, and pancer
+## remained mutations are those not found in c-bio, cosmic, and pan-cancer
 remained_df = (
     target_merge_gatk_annovar[
         ~target_merge_gatk_annovar["Chrom_mut_info"].isin(passed_info)
