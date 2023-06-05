@@ -2,7 +2,7 @@
 
 ## Overview
 
-TORSMIC is a pipeline designed for identifying somatic mutations in canine tumor samples using RNA-seq data. It utilizes a combination of tools and scripts to perform variant calling, annotation, and classification. The pipeline aims to provide accurate and reliable somatic mutation identification in a tumor-only setting with matching normal samples.
+TORSMIC is a pipeline designed for identifying somatic mutations in canine tumor samples using RNA-seq data. It utilizes a combination of tools and scripts to perform variant calling, annotation, and classification. The pipeline aims to provide accurate and reliable somatic mutation identification in a tumor-only setting without matching normal samples.
 
 ## Requirements
 
