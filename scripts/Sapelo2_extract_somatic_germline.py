@@ -50,8 +50,10 @@ annovar_gene_file = args.annovar_gene_file
 sample_name = args.sample_name
 # Output data
 final_sample_sum_out = args.final_sample_sum_out
+
 package_location = args.package_location
 bio_project = args.bio_project
+
 # Load the module
 module_loc = os.path.join(package_location, "scripts")
 sys.path.append(module_loc)
@@ -93,7 +95,6 @@ cosm_human_dog_transcript = (
     / "COSMIC_Human_GR37_V95_93_dog_transcript_3.199.txt"
 )
 ## process annovar out and extract all of the annovar information
-## the function will auto-extract the target data
 target_annovar_info = processAnnovar(annovar_gene_file, retro_gene_file, sample_name)
 
 ### process gatk output
@@ -110,7 +111,7 @@ merge_gatk_annovar = merge_gatk_annovar.loc[
     & (~merge_gatk_annovar["Alt_reads"].astype(str).str.contains("No info provided"))
 ]
 
-merge_gatk_annovar["VAF"] = merge_gatk_annovar["Alt_reads"].astype(float) / (
+merge_gatk_annovar.loc[:, "VAF"] = merge_gatk_annovar["Alt_reads"].astype(float) / (
     merge_gatk_annovar["Ref_reads"].astype(float)
     + merge_gatk_annovar["Alt_reads"].astype(float)
 )
@@ -141,10 +142,9 @@ target_column = [
 target_merge_gatk_annovar = merge_gatk_annovar[target_column]
 target_merge_gatk_annovar_columns = target_merge_gatk_annovar.columns.values
 
-target_merge_gatk_annovar = merge_gatk_annovar[target_column]
 # change column names: Ref_y,Alt_y to Ref, Alt
 target_merge_gatk_annovar.rename(columns={"Ref_y": "Ref", "Alt_y": "Alt"}, inplace=True)
-target_merge_gatk_annovar["Chrom_mut_info"] = (
+target_merge_gatk_annovar.loc[:, "Chrom_mut_info"] = (
     target_merge_gatk_annovar["Chrom"]
     + "_"
     + target_merge_gatk_annovar["Start"].astype(str)
@@ -196,9 +196,11 @@ cosm_pass = extract_human_somatic(
 cosm_pass_uniq = cosm_pass.merge(c_bio_pass, how="outer", indicator=True).loc[
     lambda x: x["_merge"] == "left_only"
 ]
-c_bio_pass_uniq = cosm_pass.merge(c_bio_pass, how="outer", indicator=True).loc[
-    lambda x: x["_merge"] == "right_only"
-]
+# c_bio_pass_uniq = cosm_pass.merge(c_bio_pass, how="outer", indicator=True).loc[
+#     lambda x: x["_merge"] == "right_only"
+# ]
+## The majority of Cosmic is overlapped with C-bio, so if I found the same, remove it
+cosm_pass_uniq = cosm_pass_uniq.drop(columns="_merge")
 
 if not pan_cancer_pass.empty:
     pan_cancer_pass.loc[:, "Source"] = "Pan-cancer"
@@ -209,8 +211,6 @@ if not c_bio_pass.empty:
 if not cosm_pass_uniq.empty:
     cosm_pass_uniq.loc[:, "Source"] = "Cosmic"
 
-## The majority of Cosmic is overlapped with C-bio, so if I found the same, remove it
-cosm_pass_uniq = cosm_pass_uniq.drop(columns="_merge")
 
 if pan_cancer_pass.empty and c_bio_pass.empty and cosm_pass_uniq.empty:
     final_panancer_cbio_cosmic = pd.DataFrame([], columns=["Line", "Chrom_mut_info"])
@@ -224,16 +224,14 @@ else:
 passed_info = final_panancer_cbio_cosmic["Chrom_mut_info"].unique().tolist()
 
 ## remained mutations are those not found in c-bio, cosmic, and pan-cancer
-remained_df = (
-    target_merge_gatk_annovar[
-        ~target_merge_gatk_annovar["Chrom_mut_info"].isin(passed_info)
-    ]
-    .drop(columns=["C_bio_Human_counterpart", "Cosm_Human_counterpart"])
-    .assign(Source="Remained")
-)
-
+remained_df = target_merge_gatk_annovar[
+    ~target_merge_gatk_annovar["Chrom_mut_info"].isin(passed_info)
+]
+remained_df["Source"] = "Remained"
 # Combine remaining data with passed data
-total_final_out = final_panancer_cbio_cosmic.append(remained_df).drop_duplicates()
+total_final_out = pd.concat(
+    [final_panancer_cbio_cosmic, remained_df], ignore_index=True
+).drop_duplicates()
 
 # Remove 'VAF_info' column to reduce the file size and sort the DataFrame
 total_final_out = (

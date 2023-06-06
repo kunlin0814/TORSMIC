@@ -274,12 +274,8 @@ common_amino_acid_value = collections.OrderedDict(
 )
 
 
-## current function only care about SNV and fs, and these two are the only two types we can do the dog_human comparison
+## current function only care about SNV and fs, and these two is the only we can do the dog_human comparison
 ## the consequence results (fs,snv) are derived from annovar annotation results, other annotation might not work
-# The following situations will have "No Counterparts"
-# 1. 'Another species doesnt have the pos'
-# 2. 'Current pos cannot align to another species'
-# 3. 'Another species has no '+gene_name+' in the databases'
 def identify_species_counterparts(
     gene_mut_info,
     human_dog_pos_dict,
@@ -288,10 +284,9 @@ def identify_species_counterparts(
     dog_aa_dict,
     translate_to,
 ):
-    # gene_name, mut_info = gene_mut_info.split("_")
     gene_name = gene_mut_info.split("_")[0]
     mut_info = gene_mut_info.split("_")[1]
-
+    ## if we want to translate to dog, then we need to use human_dog_pos_dict and vise versa
     if translate_to.upper() == "DOG":
         ref_dict, alt_dict = human_dog_pos_dict, dog_human_pos_dict
         other_species_aa_dict = dog_aa_dict
@@ -299,37 +294,50 @@ def identify_species_counterparts(
         ref_dict, alt_dict = dog_human_pos_dict, human_dog_pos_dict
         other_species_aa_dict = human_aa_dict
 
-    other_counterparts = "No Counterparts"
-
     pos = 0
-    wt = ""
-    mut = ""
-    situation = None
+    other_counterparts = " "
+
+    ## extract mutation data
+    ## consider three situation, SNV (stop_gain), fs, and other can't process (delines can't process because we don't know the downstream)
 
     if "fs" in mut_info:
-        fs_info = re.search(r"([A-Za-z])(\d+)([A-Za-z]*)(fs)", mut_info)
-        if fs_info:
-            wt, pos, _, _ = fs_info.groups()
+        if re.search(r"([A-Za-z])(\d+)([A-Za-z]*)(fs)", mut_info):
+            fs_info = re.search(r"([A-Za-z])(\d+)([A-Za-z]*)(fs)", mut_info)
+            wt = fs_info.group(1)
+            pos = int(fs_info.group(2))
+            mut = ""
+            # final_mut_info = wt+loc+fs
             situation = "fs"
+        else:
+            other_counterparts = "No Counterparts"
 
     ## SNV or stop gain
     elif re.search(r"([A-Za-z])(\d+)([A-Z])", mut_info):
         SNV_info = re.search(r"([A-Za-z])(\d+)([A-Z])", mut_info)
-        if SNV_info:
-            wt, pos, mut = SNV_info.groups()
-            situation = "SNV"
-    if situation:
-        if gene_name in alt_dict:
-            if (wt.upper() in common_amino_acid_value) and (
-                mut.upper() in common_amino_acid_value
-            ):
-                if pos in ref_dict[gene_name]:
+        wt = SNV_info.group(1)
+        pos = int(SNV_info.group(2))
+        mut = SNV_info.group(3)
+
+        situation = "SNV"
+    else:  ## if not SNV or fs types, just directly skip it (include delines)
+        other_counterparts = "Not SNV or FS"
+
+    if other_counterparts == " ":
+        if gene_name in alt_dict.keys():
+            ## if snv or fs
+            if (
+                (wt.upper() in common_amino_acid_value.keys())
+                and (mut.upper() in common_amino_acid_value.keys())
+            ) or ((wt.upper() in common_amino_acid_value.keys()) and mut == ""):
+                if pos in ref_dict[gene_name].keys():
                     other_species_pos = ref_dict[gene_name][pos]
+
                     if other_species_pos in other_species_aa_dict[gene_name]:
                         other_species_wt = other_species_aa_dict[gene_name][
                             other_species_pos
                         ]
                         given_species_mut = mut
+                        ## if mutation is synonymous SNV, then just replace the location and use counterparts WT for both aa
                         if wt == mut:
                             other_counterparts = (
                                 gene_name
@@ -338,10 +346,13 @@ def identify_species_counterparts(
                                 + str(other_species_pos)
                                 + other_species_wt
                             )
+
                         elif given_species_mut == other_species_wt:
-                            other_counterparts = "No Mutation"
+                            other_counterparts = "No mutation"
                         else:
                             if situation == "SNV":
+                                ## if the mutation is synonymous SNV
+
                                 other_counterparts = (
                                     gene_name
                                     + "_"
@@ -358,6 +369,18 @@ def identify_species_counterparts(
                                     + "fs"
                                 )
 
+                    else:
+                        other_counterparts = "Another species doesnt have the pos"
+                        #'Another species doesnt have the pos'
+                else:
+                    other_counterparts = "Current pos cannot align to another species"
+                    #'Current pos cannot align to another species'
+            else:
+                other_counterparts = "Not common amino acids"
+        else:
+            other_counterparts = "Another species doesn't have the gene name"
+            #'Another species has no '+gene_name+' in the databases'
+
     return other_counterparts
 
 
@@ -369,6 +392,7 @@ def extract_human_somatic(
     target_merge_gatk_annovar,
     translate_to,
 ):
+    copy_target_merge_gatk_annovar = target_merge_gatk_annovar.copy()
     mutation_data = pd.read_csv(mutation_file, sep="\t")
     all_mutation_list = ",".join(mutation_data["Mut_type"]).split(",")
 
@@ -382,9 +406,9 @@ def extract_human_somatic(
 
     total_summary_dict = createDictforHumanDogSearch(clean_translate_table.to_records())
 
-    target_merge_gatk_annovar["Human_counterpart"] = target_merge_gatk_annovar[
-        "Gene_mut_info"
-    ].apply(
+    copy_target_merge_gatk_annovar[
+        "Human_counterpart"
+    ] = copy_target_merge_gatk_annovar["Gene_mut_info"].apply(
         identify_species_counterparts,
         human_dog_pos_dict=total_summary_dict["human_dog_pos_dict"],
         dog_human_pos_dict=total_summary_dict["dog_human_pos_dict"],
@@ -400,8 +424,8 @@ def extract_human_somatic(
         names=["Gene_name", "Human_transcripts", "Dog_transcripts"],
     )
 
-    transcript_match_target_annovar = target_merge_gatk_annovar.loc[
-        target_merge_gatk_annovar["Ensembl_transcripts"].isin(
+    transcript_match_target_annovar = copy_target_merge_gatk_annovar.loc[
+        copy_target_merge_gatk_annovar["Ensembl_transcripts"].isin(
             human_dog_transcript_info["Dog_transcripts"]
         )
     ]
