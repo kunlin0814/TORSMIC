@@ -274,12 +274,12 @@ common_amino_acid_value = collections.OrderedDict(
 )
 
 
-## current function only care about SNV and fs, and these two is the only we can do the dog_human comparison
+## current function only care about SNV and fs, and these two are the only two types we can do the dog_human comparison
 ## the consequence results (fs,snv) are derived from annovar annotation results, other annotation might not work
 # The following situations will have "No Counterparts"
-#'Another species doesnt have the pos'
-#'Current pos cannot align to another species'
-#'Another species has no '+gene_name+' in the databases'
+# 1. 'Another species doesnt have the pos'
+# 2. 'Current pos cannot align to another species'
+# 3. 'Another species has no '+gene_name+' in the databases'
 def identify_species_counterparts(
     gene_mut_info,
     human_dog_pos_dict,
@@ -288,7 +288,9 @@ def identify_species_counterparts(
     dog_aa_dict,
     translate_to,
 ):
-    gene_name, mut_info = gene_mut_info.split("_")
+    # gene_name, mut_info = gene_mut_info.split("_")
+    gene_name = gene_mut_info.split("_")[0]
+    mut_info = gene_mut_info.split("_")[1]
 
     if translate_to.upper() == "DOG":
         ref_dict, alt_dict = human_dog_pos_dict, dog_human_pos_dict
@@ -297,22 +299,26 @@ def identify_species_counterparts(
         ref_dict, alt_dict = dog_human_pos_dict, human_dog_pos_dict
         other_species_aa_dict = human_aa_dict
 
-    pos = 0
     other_counterparts = "No Counterparts"
+
+    pos = 0
+    wt = ""
+    mut = ""
+    situation = None
 
     if "fs" in mut_info:
         fs_info = re.search(r"([A-Za-z])(\d+)([A-Za-z]*)(fs)", mut_info)
         if fs_info:
             wt, pos, _, _ = fs_info.groups()
-            situtation = "fs"
+            situation = "fs"
+
     ## SNV or stop gain
     elif re.search(r"([A-Za-z])(\d+)([A-Z])", mut_info):
         SNV_info = re.search(r"([A-Za-z])(\d+)([A-Z])", mut_info)
         if SNV_info:
             wt, pos, mut = SNV_info.groups()
-            situtation = "SNV"
-
-    if situtation:
+            situation = "SNV"
+    if situation:
         if gene_name in alt_dict:
             if (wt.upper() in common_amino_acid_value) and (
                 mut.upper() in common_amino_acid_value
@@ -335,7 +341,7 @@ def identify_species_counterparts(
                         elif given_species_mut == other_species_wt:
                             other_counterparts = "No Mutation"
                         else:
-                            if situtation == "SNV":
+                            if situation == "SNV":
                                 other_counterparts = (
                                     gene_name
                                     + "_"
@@ -343,7 +349,7 @@ def identify_species_counterparts(
                                     + str(other_species_pos)
                                     + given_species_mut
                                 )
-                            elif situtation == "fs":
+                            elif situation == "fs":
                                 other_counterparts = (
                                     gene_name
                                     + "_"
