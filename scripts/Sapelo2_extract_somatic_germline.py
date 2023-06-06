@@ -104,9 +104,12 @@ merge_gatk_annovar = target_annovar_info.merge(
     target_gatk, on=["Line", "Chrom", "Sample_name"], how="left"
 )
 merge_gatk_annovar = merge_gatk_annovar.loc[
-    (merge_gatk_annovar.Ref_reads != "No info provided")
-    & (merge_gatk_annovar.Alt_reads != "No info provided")
+    pd.notna(merge_gatk_annovar["Ref_reads"])
+    & pd.notna(merge_gatk_annovar["Alt_reads"])
+    & (~merge_gatk_annovar["Ref_reads"].astype(str).str.contains("No info provided"))
+    & (~merge_gatk_annovar["Alt_reads"].astype(str).str.contains("No info provided"))
 ]
+
 merge_gatk_annovar["VAF"] = merge_gatk_annovar["Alt_reads"].astype(float) / (
     merge_gatk_annovar["Ref_reads"].astype(float)
     + merge_gatk_annovar["Alt_reads"].astype(float)
