@@ -111,7 +111,7 @@ def process_gatk_output(gatk_vcf):
 ## Line','Consequence','Gene_name','Chrom','Start','End','Ref','Alt','Sample_name','Ensembl_gene','Ensembl_transcripts','Total_protein_change'
 ## the reason I keep line is for future used for VAF calculation
 def processAnnovar(annovar_gene_file, retro_gene_file, sample_name):
-    retro_gene_list = pd.read_csv(retro_gene_file, sep="\n", header=None)[0].tolist()
+    retro_gene_list = pd.read_csv(retro_gene_file, header=None)[0].tolist()
     annovar_gene_data = pd.read_csv(annovar_gene_file, sep="\t", header=None)
     # Define column names for Annovar gene data
     annovar_output_col = [
@@ -370,7 +370,7 @@ def extract_human_somatic(
     translate_to,
 ):
     mutation_data = pd.read_csv(mutation_file, sep="\t")
-    all_mutation_list = set(mutation_data["Mut_type"])
+    all_mutation_list = ",".join(mutation_data["Mut_type"]).split(",")
 
     translate_allign_table = pd.read_csv(human_dog_alginemt_file, sep="\t")
     translate_allign_table.loc[
