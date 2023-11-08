@@ -25,34 +25,45 @@ import numpy as np
 import pandas as pd
 from natsort import index_natsorted, natsort_keygen, natsorted, order_by_index
 
-# Create the argument parser
-parser = argparse.ArgumentParser(description="Script to extract somatic mutations")
-# Add the command-line arguments
-parser.add_argument("gatk_vcf", type=str, help="Path to the GATK VCF file")
-parser.add_argument("annovar_gene_file", type=str, help="Path to the Annovar gene file")
-parser.add_argument("sample_name", type=str, help="Name of the sample")
-parser.add_argument("final_sample_sum_out", type=str, help="Path to the output file")
-parser.add_argument("package_location", type=str, help="Path to the package location")
-parser.add_argument(
-    "bio_project",
-    type=str,
-    help="Tumor and bioproject information, separate with '_', ex: MT_PRJNA00001",
-)
-if len(sys.argv) == 1:
-    parser.print_usage()
-    sys.exit(1)
-# Parse the command-line arguments
-args = parser.parse_args()
+# # Create the argument parser
+# parser = argparse.ArgumentParser(description="Script to extract somatic mutations")
+# # Add the command-line arguments
+# parser.add_argument("gatk_vcf", type=str, help="Path to the GATK VCF file")
+# parser.add_argument("annovar_gene_file", type=str, help="Path to the Annovar gene file")
+# parser.add_argument("sample_name", type=str, help="Name of the sample")
+# parser.add_argument("final_sample_sum_out", type=str, help="Path to the output file")
+# parser.add_argument("package_location", type=str, help="Path to the package location")
+# parser.add_argument(
+#     "bio_project",
+#     type=str,
+#     help="Tumor and bioproject information, separate with '_', ex: MT_PRJNA00001",
+# )
+# if len(sys.argv) == 1:
+#     parser.print_usage()
+#     sys.exit(1)
+# # Parse the command-line arguments
+# args = parser.parse_args()
 
 # Input data
-gatk_vcf = args.gatk_vcf
-annovar_gene_file = args.annovar_gene_file
-sample_name = args.sample_name
-# Output data
-final_sample_sum_out = args.final_sample_sum_out
+base = r"E:\My Drive\Neoantigene_project\TumorOnlySomatic\Test_GATK"
+os.chdir(base)
+gatk_vcf = "test-gatk_file_withSamplename"
+# args.gatk_vcf
+annovar_gene_file = "test-annovar_WithSampleName"
+# args.annovar_gene_file
+sample_name = "LilyT"
 
-package_location = args.package_location
-bio_project = args.bio_project
+data_source_folder = Path(r"E:\My Drive\Neoantigene_project\Datasource\extractSomatic")
+
+# args.sample_name
+# Output data
+final_sample_sum_out = "Test_output.txt"
+# args.final_sample_sum_out
+
+package_location = r"C:\Users\abc73\Documents\GitHub\TORSMIC\scripts"
+# args.package_location
+bio_project = "test"
+# args.bio_project
 
 # Load the module
 module_loc = os.path.join(package_location, "scripts")
@@ -63,39 +74,50 @@ package_location = Path(package_location)
 translate_to = "human"
 
 pan_cancer_annovar_file = (
-    package_location
-    / "data_source"
+    data_source_folder
     / "Ge2_Pass_QC_Pan_Cancer_Final_Mutect_annovar_include_syn_mutation_summary.txt"
 )
-c_bioportal_file = (
-    package_location / "data_source" / "all_studies_c-bio_portal_somatic_mutation.txt"
-)
-cosmic_file = (
-    package_location / "data_source" / "GRCh37_V95_Cosmic_somatic_mutation.txt"
-)
+c_bioportal_file = data_source_folder / "all_studies_c-bio_portal_somatic_mutation.txt"
+cosmic_file = data_source_folder / "GRCh37_V95_Cosmic_somatic_mutation.txt"
 c_bio_translate_file = (
-    package_location
-    / "data_source"
-    / "c-bio_Human_GR37_103_canine_3.199_sequenceAlignment.txt"
+    data_source_folder / "c-bio_Human_GR37_103_canine_3.199_sequenceAlignment.txt"
 )
 cosmic_translate_file = (
-    package_location
-    / "data_source"
-    / "COSMIC_V95_Human_GR37_93_canine_3.199_sequenceAlignment.txt"
+    data_source_folder / "COSMIC_V95_Human_GR37_93_canine_3.199_sequenceAlignment.txt"
 )
-retro_gene_file = package_location / "data_source" / "retro_gene_list.txt"
+retro_gene_file = data_source_folder / "retro_gene_list.txt"
 c_biohuman_dog_transcript = (
-    package_location
-    / "data_source"
-    / "c_bioportal_Human_GR37_103_dog_transcript_3.199.txt"
+    data_source_folder / "c_bioportal_Human_GR37_103_dog_transcript_3.199.txt"
 )
 cosm_human_dog_transcript = (
-    package_location
-    / "data_source"
-    / "COSMIC_Human_GR37_V95_93_dog_transcript_3.199.txt"
+    data_source_folder / "COSMIC_Human_GR37_V95_93_dog_transcript_3.199.txt"
 )
+
+
 ## process annovar out and extract all of the annovar information
 target_annovar_info = processAnnovar(annovar_gene_file, retro_gene_file, sample_name)
+
+gatk_data = pd.read_csv(gatk_vcf, sep="\t", header=None)
+gatk_data.columns = ['CHROM' ,'POS' ,'ID','REF','ALT','QUAL' ,'FILTER' ,'INFO','FORMAT','FORMAT_VALUE','SAMPLE']
+gatk_data.loc[:, "Line"] = ["line" + str(i + 1) for i in range(0, len(gatk_data))]
+gatk_data[['GT','AD','DP','GQ','PL']] = gatk_data['FORMAT_VALUE'].str.split(':',expand=True)
+
+gatk_data.loc[:, ["Ref_reads", "Alt_reads"]] = (
+    gatk_data[9].astype(str).apply(extractVAF).to_numpy()
+)
+
+target_gatk = gatk_data.loc[:, [0, 3, 4, 9, 10, "Ref_reads", "Alt_reads", "Line"]]
+target_gatk.columns = [
+    "Chrom",
+    "Ref",
+    "Alt",
+    "VAF_info",
+    "Sample_name",
+    "Ref_reads",
+    "Alt_reads",
+    "Line",
+
+
 
 ### process gatk output
 target_gatk = process_gatk_output(gatk_vcf)
