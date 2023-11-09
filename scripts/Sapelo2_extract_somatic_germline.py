@@ -93,38 +93,45 @@ cosm_human_dog_transcript = (
     data_source_folder / "COSMIC_Human_GR37_V95_93_dog_transcript_3.199.txt"
 )
 
+# each_info = "AC=2;AF=1.00;AN=2;DP=2;ExcessHet=3.0103;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;QD=26.85;SOR=0.693"
+# each_info.split(";")
+
+
+def extract_info(each_info):
+    info_list = each_info.split(";")
+    data_dict = {}
+    for item in info_list:
+        key, value = item.split("=")
+        data_dict[key] = value
+
+    # Create a DataFrame from the dictionary
+    # df = pd.DataFrame(data_dict)
+    # df.columns = ['AC','AF','AN','DP','ExcessHet','FS','MLEAC','MQ','QD','SOR']
+    return data_dict
+
 
 ## process annovar out and extract all of the annovar information
 target_annovar_info = processAnnovar(annovar_gene_file, retro_gene_file, sample_name)
 
-gatk_data = pd.read_csv(gatk_vcf, sep="\t", header=None)
-gatk_data.columns = ['CHROM' ,'POS' ,'ID','REF','ALT','QUAL' ,'FILTER' ,'INFO','FORMAT','FORMAT_VALUE','SAMPLE']
-gatk_data.loc[:, "Line"] = ["line" + str(i + 1) for i in range(0, len(gatk_data))]
-gatk_data[['GT','AD','DP','GQ','PL']] = gatk_data['FORMAT_VALUE'].str.split(':',expand=True)
+## process gatk_information
+gatk_data = process_gatk_output(gatk_vcf)
+info_gatk = gatk_data["INFO"].apply(lambda x: extract_info(x)).apply(pd.Series)
+info_gatk = info_gatk.fillna("NaN")
+info_gatk = info_gatk.drop("DP", axis=1)
+gatk_data = pd.concat([gatk_data, info_gatk], axis=1)
+gatk_data = gatk_data.drop(["ID", "FILTER", "INFO", "FORMAT", "FORMAT_VALUE"], axis=1)
 
 gatk_data.loc[:, ["Ref_reads", "Alt_reads"]] = (
-    gatk_data[9].astype(str).apply(extractVAF).to_numpy()
+    gatk_data["AD"].astype(str).apply(extractVAF).to_numpy()
 )
-
-target_gatk = gatk_data.loc[:, [0, 3, 4, 9, 10, "Ref_reads", "Alt_reads", "Line"]]
-target_gatk.columns = [
-    "Chrom",
-    "Ref",
-    "Alt",
-    "VAF_info",
-    "Sample_name",
-    "Ref_reads",
-    "Alt_reads",
-    "Line",
-
 
 
 ### process gatk output
-target_gatk = process_gatk_output(gatk_vcf)
+# target_gatk = process_gatk_output(gatk_vcf)
 
 ### merge GATK and annovar information
 merge_gatk_annovar = target_annovar_info.merge(
-    target_gatk, on=["Line", "Chrom", "Sample_name"], how="left"
+    gatk_data, on=["Line", "Chrom", "Sample_name"], how="left"
 )
 merge_gatk_annovar = merge_gatk_annovar.loc[
     pd.notna(merge_gatk_annovar["Ref_reads"])
@@ -139,29 +146,8 @@ merge_gatk_annovar.loc[:, "VAF"] = merge_gatk_annovar["Alt_reads"].astype(float)
 )
 
 
-# Ref and Alt use GATK format not annovar format, so I extract Ref_y, Alt_y
-target_column = [
-    "Line",
-    "Consequence",
-    "Gene_name",
-    "Chrom",
-    "Start",
-    "End",
-    "Sample_name",
-    "Ensembl_gene",
-    "Ensembl_transcripts",
-    "Total_protein_change",
-    "Gene_mut_info",
-    "Transcript_mut_info",
-    "Ref_y",
-    "Alt_y",
-    "VAF_info",
-    "Ref_reads",
-    "Alt_reads",
-    "VAF",
-]
-
-target_merge_gatk_annovar = merge_gatk_annovar[target_column]
+# Ref and Alt use GATK format not annovar format, so I remove Ref_x, Alt_x
+target_merge_gatk_annovar = merge_gatk_annovar.drop(["Alt_x", "Ref_x"], axis=1)
 target_merge_gatk_annovar_columns = target_merge_gatk_annovar.columns.values
 
 # change column names: Ref_y,Alt_y to Ref, Alt
@@ -257,7 +243,7 @@ total_final_out = pd.concat(
 
 # Remove 'VAF_info' column to reduce the file size and sort the DataFrame
 total_final_out = (
-    total_final_out.drop("VAF_info", axis=1)
+    total_final_out.drop("AD", axis=1)
     .sort_values(by="Line", key=natsort_keygen())
     .drop(columns="Line")
 )

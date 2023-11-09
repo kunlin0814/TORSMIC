@@ -19,9 +19,9 @@ import numpy as np
 import pandas as pd
 
 
-def extractVAF(gatk_info):
-    if len(gatk_info.split(":")) > 1:
-        vaf_info = gatk_info.split(":")[1].split(",")
+def extractVAF(AD_info):
+    if len(AD_info.split(",")) > 1:
+        vaf_info = AD_info.split(",")
         ref = int(vaf_info[0])
         alt = int(vaf_info[1])
         # vaf_value = float(alt/(ref+alt))
@@ -84,24 +84,25 @@ def extractAnnovarMutProtein(mut_info):
 
 def process_gatk_output(gatk_vcf):
     gatk_data = pd.read_csv(gatk_vcf, sep="\t", header=None)
-    gatk_data.loc[:, "Line"] = ["line" + str(i + 1) for i in range(0, len(gatk_data))]
-    gatk_data.loc[:, ["Ref_reads", "Alt_reads"]] = (
-        gatk_data[9].astype(str).apply(extractVAF).to_numpy()
-    )
-
-    target_gatk = gatk_data.loc[:, [0, 3, 4, 9, 10, "Ref_reads", "Alt_reads", "Line"]]
-    target_gatk.columns = [
+    gatk_data.columns = [
         "Chrom",
+        "Pos",
+        "ID",
         "Ref",
         "Alt",
-        "VAF_info",
+        "QUAL",
+        "FILTER",
+        "INFO",
+        "FORMAT",
+        "FORMAT_VALUE",
         "Sample_name",
-        "Ref_reads",
-        "Alt_reads",
-        "Line",
     ]
+    gatk_data.loc[:, "Line"] = ["line" + str(i + 1) for i in range(0, len(gatk_data))]
+    gatk_data[["GT", "AD", "DP", "GQ", "PL"]] = gatk_data["FORMAT_VALUE"].str.split(
+        ":", expand=True
+    )
 
-    return target_gatk
+    return gatk_data
 
 
 ## this function will process annovar output and extract all the protein changes in the annovar file (not only one protein change)
