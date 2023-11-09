@@ -26,44 +26,44 @@ import pandas as pd
 from natsort import index_natsorted, natsort_keygen, natsorted, order_by_index
 
 # # Create the argument parser
-# parser = argparse.ArgumentParser(description="Script to extract somatic mutations")
-# # Add the command-line arguments
-# parser.add_argument("gatk_vcf", type=str, help="Path to the GATK VCF file")
-# parser.add_argument("annovar_gene_file", type=str, help="Path to the Annovar gene file")
-# parser.add_argument("sample_name", type=str, help="Name of the sample")
-# parser.add_argument("final_sample_sum_out", type=str, help="Path to the output file")
-# parser.add_argument("package_location", type=str, help="Path to the package location")
-# parser.add_argument(
-#     "bio_project",
-#     type=str,
-#     help="Tumor and bioproject information, separate with '_', ex: MT_PRJNA00001",
-# )
-# if len(sys.argv) == 1:
-#     parser.print_usage()
-#     sys.exit(1)
-# # Parse the command-line arguments
-# args = parser.parse_args()
+parser = argparse.ArgumentParser(description="Script to extract somatic mutations")
+# Add the command-line arguments
+parser.add_argument("gatk_vcf", type=str, help="Path to the GATK VCF file")
+parser.add_argument("annovar_gene_file", type=str, help="Path to the Annovar gene file")
+parser.add_argument("sample_name", type=str, help="Name of the sample")
+parser.add_argument("final_sample_sum_out", type=str, help="Path to the output file")
+parser.add_argument("package_location", type=str, help="Path to the package location")
+parser.add_argument(
+    "bio_project",
+    type=str,
+    help="Tumor and bioproject information, separate with '_', ex: MT_PRJNA00001",
+)
+if len(sys.argv) == 1:
+    parser.print_usage()
+    sys.exit(1)
+# Parse the command-line arguments
+args = parser.parse_args()
 
 # Input data
-base = r"E:\My Drive\Neoantigene_project\TumorOnlySomatic\Test_GATK"
-os.chdir(base)
-gatk_vcf = "test-gatk_file_withSamplename"
-# args.gatk_vcf
-annovar_gene_file = "test-annovar_WithSampleName"
+gatk_vcf = args.gatk_vcf
+# "test-gatk_file_withSamplename"
+
+annovar_gene_file = args.annovar_gene_file
+# "test-annovar_WithSampleName"
 # args.annovar_gene_file
-sample_name = "LilyT"
+sample_name = args.sample_name
+# "LilyT"
 
-data_source_folder = Path(r"E:\My Drive\Neoantigene_project\Datasource\extractSomatic")
-
-# args.sample_name
 # Output data
-final_sample_sum_out = "Test_output.txt"
+final_sample_sum_out = args.final_sample_sum_out
+# "Test_output.txt"
 # args.final_sample_sum_out
 
-package_location = r"C:\Users\abc73\Documents\GitHub\TORSMIC\scripts"
-# args.package_location
-bio_project = "test"
-# args.bio_project
+package_location = args.package_location
+# r"C:\Users\abc73\Documents\GitHub\TORSMIC\scripts"
+
+bio_project = args.bio_project
+# "test"
 
 # Load the module
 module_loc = os.path.join(package_location, "scripts")
@@ -74,23 +74,36 @@ package_location = Path(package_location)
 translate_to = "human"
 
 pan_cancer_annovar_file = (
-    data_source_folder
+    package_location
+    / "data_source"
     / "Ge2_Pass_QC_Pan_Cancer_Final_Mutect_annovar_include_syn_mutation_summary.txt"
 )
-c_bioportal_file = data_source_folder / "all_studies_c-bio_portal_somatic_mutation.txt"
-cosmic_file = data_source_folder / "GRCh37_V95_Cosmic_somatic_mutation.txt"
+c_bioportal_file = (
+    package_location / "data_source" / "all_studies_c-bio_portal_somatic_mutation.txt"
+)
+cosmic_file = (
+    package_location / "data_source" / "GRCh37_V95_Cosmic_somatic_mutation.txt"
+)
 c_bio_translate_file = (
-    data_source_folder / "c-bio_Human_GR37_103_canine_3.199_sequenceAlignment.txt"
+    package_location
+    / "data_source"
+    / "c-bio_Human_GR37_103_canine_3.199_sequenceAlignment.txt"
 )
 cosmic_translate_file = (
-    data_source_folder / "COSMIC_V95_Human_GR37_93_canine_3.199_sequenceAlignment.txt"
+    package_location
+    / "data_source"
+    / "COSMIC_V95_Human_GR37_93_canine_3.199_sequenceAlignment.txt"
 )
-retro_gene_file = data_source_folder / "retro_gene_list.txt"
+retro_gene_file = package_location / "data_source" / "retro_gene_list.txt"
 c_biohuman_dog_transcript = (
-    data_source_folder / "c_bioportal_Human_GR37_103_dog_transcript_3.199.txt"
+    package_location
+    / "data_source"
+    / "c_bioportal_Human_GR37_103_dog_transcript_3.199.txt"
 )
 cosm_human_dog_transcript = (
-    data_source_folder / "COSMIC_Human_GR37_V95_93_dog_transcript_3.199.txt"
+    package_location
+    / "data_source"
+    / "COSMIC_Human_GR37_V95_93_dog_transcript_3.199.txt"
 )
 
 # each_info = "AC=2;AF=1.00;AN=2;DP=2;ExcessHet=3.0103;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;QD=26.85;SOR=0.693"
