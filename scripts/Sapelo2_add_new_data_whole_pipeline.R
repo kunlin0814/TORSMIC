@@ -210,7 +210,7 @@ if (sample_recurrent){
   ### if variants in gt two tumor types, if variants have ratios > gt2 tumor types, the variants are germline
   germline_in_gt2_tumor <- each_tumor_target_mut_sum[In_number_tumor_type>=2 & num_tumor_type_with_gt2_cut_off >=2 ,]$Chrom_mut_info
   ### if variants in one tumor type, then variants can't have ratio gt than 1 tumor type cut off (set 0.4 for each)
-  germline_in_1_tumor <- each_tumor_target_mut_sum[num_tumor_type_with_gt1_cut_off >=1,]$Chrom_mut_info
+  germline_in_1_tumor <- each_tumor_target_mut_sum[In_number_tumor_type==1 & num_tumor_type_with_gt1_cut_off >=1,]$Chrom_mut_info
   ### merge variants from total sample cut or each bioproject cut
   overlap <- unique(c(germline_in_gt2_tumor, germline_in_1_tumor,gt_all))
   file[Chrom_mut_info %in% overlap, Status:="Germline",]
