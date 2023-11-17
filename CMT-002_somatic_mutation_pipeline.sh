@@ -8,7 +8,7 @@
 #SBATCH --output=CMT-002_extract_somatic.%j.out    # Standard output log
 #SBATCH --error=CMT-002_extract_somatic.%j.err     # Standard error log
 
-package_location='/home/kh31516/kh31516_Lab_Share_script/IdentifiyNeoAntigene/TumorOnlySomatic'
+package_location='/home/kh31516/kh31516_Lab_Share_script/IdentifiyNeoAntigene/TORSMIC'
 base_folder=/scratch/kh31516/UGA
 bsample=CMT-002                     # sample name
 bio_tumor='MT_PRJNA000001'          # put the tumor type first and then project name,  separate with '_' 
