@@ -239,7 +239,7 @@ else:
     final_panancer_cbio_cosmic = pd.DataFrame()
     final_panancer_cbio_cosmic = pd.concat(
         [pan_cancer_pass, c_bio_pass, cosm_pass_uniq], ignore_index=True
-    ).drop_duplicates(subset=["Line", "Chrom_mut_info"])
+    ).drop_duplicates()
 
 # Keep remaining Annovar files not in pan-cancer and c-bio for future VAF examination
 passed_info = final_panancer_cbio_cosmic["Chrom_mut_info"].unique().tolist()
