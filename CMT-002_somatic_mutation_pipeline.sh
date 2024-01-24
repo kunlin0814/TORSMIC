@@ -153,7 +153,7 @@ python "${scripts_location}/Sapelo2_extract_somatic_germline.py" \
 ml Java
 
 # remove germline mutations found in the database
-java -Xmx32g -cp "${scripts_location}/DbSNP_filtering" \
+java -Xmx32g -cp "${scripts_location}/ DbSNP_filtering" \
 "${db_snp}" \
 "${bam_file_folder}/${bsample}-rg_added_sorted_dedupped_split.realigned.bam.filter.vcf-PASS" \
 "${bam_file_folder}/DB_SNP_filtering_${bsample}-rg_added_sorted_dedupped_split.realigned.bam.filter.vcf" \
