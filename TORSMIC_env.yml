@@ -1,4 +1,4 @@
-name: py38
+name: TORSMIC
 channels:
   - bioconda
   - conda-forge
@@ -6,17 +6,26 @@ channels:
 dependencies:
   - python=3.8.2
   - snakemake=7.16.0
+  - bioconda::samtools
+  - bioconda::picard=2.21.6
+  - bioconda::gatk=3.8.1
   - conda-forge::scipy=1.10.1
   - conda-forge::numpy=1.24.4
   - conda-forge::pandas=2.0.3
+  - conda-forge::scikit-learn=1.3.0
+  - conda-forge::natsort=8.4.0
   - conda-forge::matplotlib
   - conda-forge::seaborn
-  - conda-forge::natsort=8.4.0
-  - conda-forge::scikit-learn=1.3.0
-  - conda-forge::r-base=4.1.0
-  - conda-forge::r-ggplot2=3.4.3
-  - conda-forge::r-tidyverse=2.0.0
-  - conda-forge::r-data.table=1.14.8
+  - conda-forge::r-base=4.1
+  - conda-forge::r-reshape2
+  - conda-forge::r-stringi
+  - conda-forge::r-r.utils
+  - conda-forge::r-ggplot2
+  - conda-forge::r-tidyverse
+  - conda-forge::r-data.table=1.5
+  - conda-forge::r-ragg=1.2.5
+  - conda-forge::openjdk=17.0.6
+  - conda-forge::perl=5.26.2
   - jupyter
   - ipykernel
   - conda-forge::pyvcf
