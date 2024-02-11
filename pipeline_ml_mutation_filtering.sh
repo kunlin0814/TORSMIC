@@ -13,6 +13,7 @@ package_location='/home/kh31516/kh31516_Lab_Share_script/IdentifiyNeoAntigene/TO
 new_add_data='/scratch/kh31516/UGA/UGA_OSA_somatic_germline.txt.gz'                  ## the location of the table which you concat all of the results from all the samples
 pipeline_out_file_name='/scratch/kh31516/UGA/UGA_OSA_pipeline_filtering.txt' ## the output file from the pipeline without machine learning prediction
 ml_out_file_name='/scratch/kh31516/UGA/UGA_OSA_ml_filtering.txt' ## the output file from the pipeline with machine learning prediction
+keep_old='T' # T or F , if you want to keep 367 smaples, then choose "T" 
 ####
 
 scripts_location="${package_location}/scripts"
@@ -23,11 +24,13 @@ ml R/4.0.0-foss-2019b
 # package_location <- as.character(args[1])
 # new_data_file <- as.character(args[2])
 # out_file_name <- as.character(args[3])
+# keep_old <- as.logical(args[4])
 
 Rscript --vanilla "${scripts_location}/Sapelo2_add_new_data_whole_pipeline.R" \
 "${package_location}" \
 "${new_add_data}" \
-"${pipeline_out_file_name}"
+"${pipeline_out_file_name}"\
+"${keep_old}"
 
 ml Miniconda3/4.9.2
 source activate /home/kh31516/myenv/py38
