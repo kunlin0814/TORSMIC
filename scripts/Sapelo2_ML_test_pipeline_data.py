@@ -27,13 +27,13 @@ final_output = sys.argv[3]
 model_file = (
     model_folder
     + "/"
-    + "WithVACutNewlabel_MT_overlap_comparison_Human_remained_02_09_23.joblib"
+    + "Curate_training.joblib"
 )
 
 ### because each number represent different meaning, and we need to re-encode to it's orignal meaning
 ## 02_09_23, we change the encoding dict because lack of HQ WT
 reverse_results_encoding_dict_file = (
-    model_folder + "/" + "New_label_Model_encoding_results_02_09.txt"
+    model_folder + "/" + "New_label_Model_encoding_results_12_13_23.txt"
 )
 reverse_results_encoding_dict = pd.read_csv(
     reverse_results_encoding_dict_file, sep="\t"
@@ -42,7 +42,18 @@ reverse_results_encoding_dict = dict(
     zip(reverse_results_encoding_dict.Encoding, reverse_results_encoding_dict.Results)
 )
 
-needed_column = ["Chrom", "Pos", "Ref", "Alt", "Ref_reads", "Alt_reads", "VAF"]
+needed_column = [
+    "Chrom",
+    "Pos",
+    "Ref",
+    "Alt",
+    "Ref_reads",
+    "Alt_reads",
+    "QUAL",
+    "DP",
+    "MQ",
+    "VAF"
+]
 ### load the data and prepare for model testing
 
 somatic_test_info = pd.read_csv(data_test_file, sep="\t")
