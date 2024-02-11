@@ -29,7 +29,7 @@ vaf_ratio_cut <- 0.2
 each_tumor_type_min_sample <- 10
 total_sample_cut <- 0.15 # PIK3CA 0.13
 gt1_tumor_type_cut <- 0.3 ## BRAF 0.31, PIK3CA is 0.27
-one_tumor_type_cut <- 0.45
+one_tumor_type_cut <- 0.4
 
 filtering_5steps <- T
 sample_recurrent <- T
