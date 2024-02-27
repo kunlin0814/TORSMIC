@@ -6,9 +6,6 @@ channels:
 dependencies:
   - python=3.8.2
   - snakemake=7.16.0
-  - bioconda::samtools
-  - bioconda::picard=2.21.6
-  - bioconda::gatk=3.8.1
   - conda-forge::scipy=1.10.1
   - conda-forge::numpy=1.24.4
   - conda-forge::pandas=2.0.3
@@ -16,7 +13,8 @@ dependencies:
   - conda-forge::natsort=8.4.0
   - conda-forge::matplotlib
   - conda-forge::seaborn
-  - conda-forge::r-base=4.1
+  - conda-forge::libtiff
+  - conda-forge::r-base
   - conda-forge::r-reshape2
   - conda-forge::r-stringi
   - conda-forge::r-r.utils
