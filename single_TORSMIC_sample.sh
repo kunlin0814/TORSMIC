@@ -3,7 +3,7 @@
 #SBATCH --job-name=test_RNA
 #SBATCH --nodes=1
 #SBATCH --ntasks=8
-#SBATCH --tasks-per-node=8
+#SBATCH --tasks-per-node=1
 #SBATCH --mem=60G
 #SBATCH --time=30:00:00
 #SBATCH --mail-user=kh31516@uga.edu
@@ -43,13 +43,12 @@ python /scratch/kh31516/snakeTest/scripts/TORSMIC_make_snakemake_config.py \
 # snakemake --dag -s "${base}/scripts/Snakefile_STAR_VCF_per_case" --configfile ${config}| dot -Tpng > workflow_dag.png
 
 snakemake \
-    -n \
     --cores ${SLURM_NTASKS} \
     --use-conda \
     --rerun-incomplete \
     --rerun-triggers mtime \
     --configfile ${config} \
-    --snakefile "${base}/scripts/TORSMIC_each_sample.py"
+    --snakefile "${base}/scripts/snake_TORSMIC_each_sample"
 
 
 ### test QC

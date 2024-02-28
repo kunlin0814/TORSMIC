@@ -30,7 +30,7 @@ def main():
 
     ## paths for outputs
     config["out"] = {
-        "somatic_output_dir": args.base+"/data/"+args.bio_tumor+"/"+"somatic_out"
+        "somatic_output_dir": args.base+"/results/"+args.bio_tumor+"/"+"somatic_out/"+ args.bsample
     }
 
     ## parameters for cluster job resources/envs

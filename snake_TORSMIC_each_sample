@@ -24,22 +24,38 @@ cds_file = f"{package_location}/data_source/UniqueCainineCdsInterval.interval_li
 
 rule all:
     input:
-        torsmic_classify_results = f"{somatic_output_dir}/{bsample}_cds_dbsnp_mut_summary.txt"
-
-
+        torsmic_classify_results = f"{somatic_output_dir}/{bsample}_cds_dbsnp_mut_summary.txt",
+        dbsnp_torsmic_classify_results = f"{somatic_output_dir}/{bsample}_DBSNP_mut_summary.txt",
+        germline_torsmic_classify_results = f"{somatic_output_dir}/{bsample}_Germline_mut_summary.txt"
+        
+rule move_vcf_file:
+    input:
+        orig_vcf = f"{gatk_vcf_dir}/{bsample}_rg_added_sorted_dedupped_split.realigned.bam.filter.vcf"
+    output:
+        new_path_vcf = f"{somatic_output_dir}/{bsample}_rg_added_sorted_dedupped_split.realigned.bam.filter.vcf"    
+    shell:
+        '''
+        mkdir -p {somatic_output_dir}
+        cp {input.orig_vcf} {output.new_path_vcf}
+        '''
+    
 ##  A function that performs annovar annotation and then append the gene name
 rule filter_with_dbsnp:
     input:
         dbsnp_file = db_snp,
-        gatk_filtered_vcf = f"{gatk_vcf_dir}/{bsample}_rg_added_sorted_dedupped_split.realigned.bam.filter.vcf"  
+        gatk_filtered_vcf = f"{somatic_output_dir}/{bsample}_rg_added_sorted_dedupped_split.realigned.bam.filter.vcf"  
     output:
-        dbsnp_filtered = f"{somatic_output_dir}/DB_SNP_filtering_{bsample}.filter.vcf",
-        germline_filtered_info = f"{somatic_output_dir}/Germline_filtered_{bsample}.filter.vcf"
+        dbsnp_filtered = f"{somatic_output_dir}/{bsample}_DBSNP.filter.vcf",
+        germline_filtered_info = f"{somatic_output_dir}/{bsample}_Germline.filter.vcf"
     conda:
         config['envs']
+    resources:
+        mem=config['resources']['mem']
     shell: 
         '''
-        java -Xmx{resources.mem} -cp {scripts_location} DbSNP_filtering
+        cd {scripts_location}
+        javac DbSNP_filtering.java
+        java -Xmx{resources.mem} -cp {scripts_location} DbSNP_filtering \
         {input.dbsnp_file} \
         {input.gatk_filtered_vcf} \
         {output.dbsnp_filtered} \
@@ -59,7 +75,7 @@ rule limit_cds:
         '''
         python {params.scripts_location}/Limit_vcf_to_CDS.py \
         {input.dbsnp_filtered} \
-        {input.cds_file} \
+        {cds_file} \
         {output.cds_dbsnp_filtered}
         '''
 
@@ -72,7 +88,7 @@ rule annovar_annotation:
         vcf_pass_avinput = temp(somatic_output_dir+"/{file_name}.filter.vcf-PASS-avinput"),
         annovar_out = temp(somatic_output_dir+"/{file_name}.filter.vcf-PASS-avinput.exonic_variant_function"),
         add_genename = temp(somatic_output_dir+"/{file_name}.filter.vcf-PASS-avinput.exonic_variant_function_WithGeneName"),
-        vcf_pass_with_sample = somatic_output_dir+"/{file_name}_filter_vcf_withsample.vcf",
+        vcf_pass_with_sample = somatic_output_dir+"/{file_name}_filtered_vcf_withsample.vcf",
         annovar_with_sample = somatic_output_dir+"/{file_name}_annovar_gene_withsample"
     params:
         annovar_index=config['in']['annovar_index'],
@@ -107,8 +123,8 @@ rule annovar_annotation:
 
 rule classify_mutation:
     input:
-        vcf_pass_with_sample = somatic_output_dir+"/{file_name}_filtered_vcf_withsample.vcf",
-        annovar_with_sample = somatic_output_dir+"/{file_name}_annovar_gene_withsample"
+        vcf_pass_with_sample = rules.annovar_annotation.output.vcf_pass_with_sample,
+        annovar_with_sample = rules.annovar_annotation.output.annovar_with_sample
     output:
        mut_classify_results = somatic_output_dir+"/{file_name}_mut_summary.txt"
        #f"{somatic_output_dir}/{bsample}_cds_dbsnp_mutation_summary.txt"
@@ -119,11 +135,11 @@ rule classify_mutation:
         bio_tumor_symbol = bio_tumor
     shell:
         '''
-        python "${scripts_location}/Sapelo2_extract_somatic_germline.py" \
-        {somatic_output_dir}/{input.vcf_pass_with_sample} \
-        {somatic_output_dir}/{input.annovar_with_sample} \
+        python {scripts_location}/Sapelo2_extract_somatic_germline.py \
+        {input.vcf_pass_with_sample} \
+        {input.annovar_with_sample} \
         {bsample} \
-        {somatic_output_dir}/{output.mut_classify_results} \
+        {output.mut_classify_results} \
         {params.package_location} \
         {params.bio_tumor_symbol}
         '''
