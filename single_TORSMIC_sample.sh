@@ -12,8 +12,8 @@
 
 base="/scratch/${USER}/snakeTest"
 bio_tumor=OSA_PRJNA78827
-bsample='SAMN00013513' ## multiple srr
-#'SAMN04417762' # single srr
+bsample='SAMN00013513' 
+
 package_location='/work/szlab/Kun-Lin_pipeline/TORSMIC'
 gatk_vcf_dir='/scratch/kh31516/snakeTest/results/OSA_PRJNA78827/SAMN00013513/STAR'
 dbsnp='/work/szlab/Lab_shared_PanCancer/source/DbSNP_canFam3_version151-DogSD_Broad_March2022.vcf'
@@ -29,7 +29,7 @@ mkdir -p logs/ config/ data/ out/ results/
 #### test WES germline calling pipeline per case
 config=$base/config/torsmic_config.json
 
-python /scratch/kh31516/snakeTest/scripts/TORSMIC_make_snakemake_config.py \
+python ${package_location}/scripts/TORSMIC_make_snakemake_config.py \
     --base ${base} \
     --out ${config} \
     --bio_tumor ${bio_tumor} \

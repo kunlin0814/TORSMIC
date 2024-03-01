@@ -4,28 +4,21 @@
 
 TORSMIC is a pipeline designed for identifying somatic mutations in canine tumor samples using RNA-seq data. It utilizes a combination of tools and scripts to perform variant calling, annotation, and classification. The pipeline aims to provide accurate and reliable somatic mutation identification in a tumor-only setting without matching normal samples.
 
-## Requirements
+# Installation
 
-To run the TORSMIC pipeline, ensure that the following requirements are met:
+- Environment for meta data collection
 
-- Python >= 3.7
-- natsort >= 8.3
-- Pandas >= 1.3
-- Numpy >= 1.24
-- Scikit-learn >= 1.0
-- Java >= SE8
-- Annovar (version after 2017 Jul16)
-- GATK/3.8-1
-- picard/2.21.6
-- R Data.table 1.14
+```bash
+mamba env create --force -f /scratch/kh31516/TORSMIC/data_source/TORSMIC_env.yml --name TORSMIC
+```
 
 ## General Usage
 
 The TORSMIC pipeline utilizes a Unix/Linux shell script and involves several steps, as outlined below:
 
-1. Run `CMT-002_somatic_mutation_pipeline.sh` for each sample to perform variant calling and mutation summary and mutation classification.
+1. Run `single_TORSMIC_sample.sh` for each sample to perform mutation summary and classification.
 2. Merge the results obtained from individual samples.
-3. Utilize `pipeline_ml_mutation_filtering.sh` to apply machine learning-based mutation filtering and classification to obtain the final mutation classification.
+3. Utilize `pipeline_ml_mutation_filtering.sh` to apply machine learning-based mutation filtering and classification to obtain the final mutation calls.
 
 ### Steps to Run the Package
 
