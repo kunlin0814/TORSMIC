@@ -23,9 +23,9 @@ To run the TORSMIC pipeline, ensure that the following requirements are met:
 
 The TORSMIC pipeline utilizes a Unix/Linux shell script and involves several steps, as outlined below:
 
-1. Run `CMT-002_somatic_mutation_pipeline.sh` for each sample to perform variant calling and somatic mutation identification.
+1. Run `CMT-002_somatic_mutation_pipeline.sh` for each sample to perform variant calling and mutation summary and classifications (mutation also from human or not).
 2. Merge the results obtained from individual samples.
-3. Utilize `pipeline_ml_mutation_filtering.sh` to apply machine learning-based mutation filtering and classification to obtain the final mutation calls.
+3. Utilize `pipeline_ml_mutation_filtering.sh` to apply machine learning-based mutation filtering and classification to obtain the final mutation results.
 
 ### Steps to Run the Package
 
