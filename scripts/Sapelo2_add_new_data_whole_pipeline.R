@@ -142,8 +142,6 @@ human_unique_data[Sample_number < second_sample_cut_off & Homo_ratio>=vaf_ratio_
 
 ##### process remained 
 remained_unique_data <- unique(file[Source %in% source[3],.(Chrom_mut_info,Sample_name,VAF,Source,Sample_number,Homo_ratio,Homo_Hetero_Ratio,Status)])
-unique_remained_training_data <- unique(file[Source %in% source[3],.(Chrom_mut_info,Sample_name,Ref_reads,Alt_reads,Gene_mut_info,VAF,Source,Sample_number,Homo_ratio,Homo_Hetero_Ratio,Status)])
-
 ## condition 1:  >= 10 samples ,
 ## condition 1-1: if Homo_Hetero_Ratio >= propor_cut_off and samples >= 10, then germline
 remained_unique_data[Sample_number>=sample_cut_off & Homo_Hetero_Ratio >=propor_cut_off,Status:="Germline"]
