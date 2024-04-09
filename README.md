@@ -8,11 +8,11 @@ TORSMIC is a pipeline designed for identifying somatic mutations in canine tumor
 
 To run the TORSMIC pipeline, ensure that the following requirements are met:
 
-- Python 3.7
+- Python 3.8
 - natsort >= 8.3
 - Pandas >= 1.3
 - Numpy >= 1.24
-- Scikit-learn >= 1.0
+- Scikit-learn >= 1.3.0
 - Java >= SE8
 - Annovar (version after 2017 Jul16)
 - GATK/3.8-1
