@@ -126,7 +126,6 @@ max_gene_transcript_len_df = dog_pep_db.loc[dog_pep_db.groupby('Ensembl_gene')['
 used_transcript = list(max_gene_transcript_len_df['Ensembl_transcript'])
 
 
-
 # Input data
 gatk_vcf = args.gatk_vcf
 # "test-gatk_file_withSamplename"
