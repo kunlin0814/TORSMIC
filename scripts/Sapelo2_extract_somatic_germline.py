@@ -25,6 +25,75 @@ import numpy as np
 import pandas as pd
 from natsort import index_natsorted, natsort_keygen, natsorted, order_by_index
 
+
+def check_gene_trancript_loc(info_list):
+    # the function identify the Ensembl gene id and transcript id location
+    gene_transcript_loc = ()
+    gene_symbol = None
+    for i in range(len(info_list)):
+        if "gene:" in info_list[i]:
+            gene_index = i
+        elif "transcript:" in info_list[i]:
+            trans_index = i
+        elif "gene_symbol:" in info_list[i]:
+            gene_symbol = i
+
+    gene_transcript_loc = (gene_index, trans_index, gene_symbol)
+    return gene_transcript_loc
+
+
+def createPEPdatabse(pepGTFfile):
+    ##### processinig human create a summary df containing transcript id, gene ensembl id, gene name, sequence ######
+    ##### create a transcript peptide sequence database from PEP GTF files
+    gene_transcript_summ = []
+    gene_ensembl = ""
+    transcript = ""
+    gene_symbol = ""
+    sequence = ""
+    header = ""
+    with open(pepGTFfile, "r") as f:
+        total_file = f.read().split("\n")[:-1]
+        for i, each_line in enumerate(total_file):
+            if i != len(total_file) - 1:
+                if each_line.startswith(">"):
+                    each_sum = [header, transcript, gene_ensembl, gene_symbol, sequence]
+
+                    if each_sum != ["", "", "", "", ""]:
+                        gene_transcript_summ.append(
+                            [header, transcript, gene_ensembl, gene_symbol, sequence]
+                        )
+
+                    info = each_line.split(" ")
+                    header = info[0].split(">")[1]
+                    index_info = check_gene_trancript_loc(info)
+                    # print(index_info)
+                    gene_ensembl = info[index_info[0]].split(":")[1].split(".")[0]
+                    transcript = info[index_info[1]].split(":")[1].split(".")[0]
+
+                    if index_info[2] != None:
+                        gene_symbol = info[index_info[2]].split(":")[1]
+
+                    else:
+                        gene_symbol = "-"
+
+                    sequence = ""
+                else:
+                    sequence += each_line.split("\n")[0]
+            else:
+                gene_transcript_summ.append(
+                    [header, transcript, gene_ensembl, gene_symbol, sequence]
+                )
+
+    gene_transcript_df = pd.DataFrame(gene_transcript_summ)
+    gene_transcript_df.columns = [
+        "Header",
+        "Ensembl_transcript",
+        "Ensembl_gene",
+        "Gene_name",
+        "Sequence",
+    ]
+    gene_transcript_df.index = gene_transcript_df["Ensembl_transcript"]
+    return gene_transcript_df
 # # Create the argument parser
 parser = argparse.ArgumentParser(description="Script to extract somatic mutations")
 # Add the command-line arguments
@@ -43,6 +112,20 @@ if len(sys.argv) == 1:
     sys.exit(1)
 # Parse the command-line arguments
 args = parser.parse_args()
+
+### use the longest transcript
+dog_gtf_file='/Users/kun-linho/Library/CloudStorage/GoogleDrive-abc730814@gmail.com/My Drive/Canine_Mapping_source/Peptide/Dog/ensembl_3.1.99/Canis_familiaris.CanFam3.1.99pep.all.fa'
+dog_pep_db = createPEPdatabse(dog_gtf_file)
+   
+## only take rows with gene_name
+#gene_transcript_df = dog_pep_db[dog_pep_db['Gene_name']!='-']
+dog_pep_db['Seq_len'] = dog_pep_db['Sequence'].apply(lambda x:len(x))
+
+## choose the transcript with the longest sequence len as the canonical amino acids
+max_gene_transcript_len_df = dog_pep_db.loc[dog_pep_db.groupby('Ensembl_gene')['Seq_len'].idxmax()]
+used_transcript = list(max_gene_transcript_len_df['Ensembl_transcript'])
+
+
 
 # Input data
 gatk_vcf = args.gatk_vcf
