@@ -1,6 +1,8 @@
 library(data.table)
 library(tidyverse)
 
+### 07/30/2024, select the longest transcript to simplify the whole process
+
 args    <- commandArgs(trailingOnly=TRUE)
 if (length(args)==0) {
   stop("At least one argument must be supplied (input file).n", call.=FALSE)
@@ -9,7 +11,9 @@ if (length(args)==0) {
 package_location <- as.character(args[1])
 new_data_file <- as.character(args[2])
 out_file_name <- as.character(args[3])
-keep_old <- as.logical(toupper(args[4]))
+canine_longest_file <- as.character(args[4])
+  #'/Volumes/Research/GitHub/TORSMIC/data_source/CanFam3.1.99_longest_transcript.txt'
+keep_old <- as.logical(toupper(args[5]))
 
 module_location <- paste(package_location,'scripts','somatic_germline_module.R',sep ="/")
 data_source <- paste(package_location,'data_source',sep="/")
@@ -35,8 +39,12 @@ filtering_5steps <- T
 sample_recurrent <- T
 breed_filtering <- T
 wes_rna_filtering <- T
+
+canine_longest_transcript <- fread(canine_longest_file)
 new_data <- fread(new_data_file)
+new_data <- new_data[Ensembl_transcripts %in% canine_longest_transcript$Ensembl_transcript,]
 file <- fread("PassQC_Total_biosample_somatic_germline_sum_03_02_23.txt.gz")
+file <- file[Ensembl_transcripts %in% canine_longest_transcript$Ensembl_transcript,]
 file[Source=='C-bio'| Source=="Cosmic",Source:="Human",]
 old_sample <- unique(file$Sample_name)
 
@@ -87,6 +95,8 @@ somatic_info <- unique(wes_rna_seq_training_data[Results=="Somatic",]$Chrom_mut_
 wt_info <- unique(wes_rna_seq_training_data[Results=="WT",]$Chrom_mut_info)
 
 
+  
+  
 source <- c('Pan-cancer','Human','Remained')
 
 if (filtering_5steps){

@@ -113,18 +113,6 @@ if len(sys.argv) == 1:
 # Parse the command-line arguments
 args = parser.parse_args()
 
-### use the longest transcript
-dog_gtf_file='/Users/kun-linho/Library/CloudStorage/GoogleDrive-abc730814@gmail.com/My Drive/Canine_Mapping_source/Peptide/Dog/ensembl_3.1.99/Canis_familiaris.CanFam3.1.99pep.all.fa'
-dog_pep_db = createPEPdatabse(dog_gtf_file)
-   
-## only take rows with gene_name
-#gene_transcript_df = dog_pep_db[dog_pep_db['Gene_name']!='-']
-dog_pep_db['Seq_len'] = dog_pep_db['Sequence'].apply(lambda x:len(x))
-
-## choose the transcript with the longest sequence len as the canonical amino acids
-max_gene_transcript_len_df = dog_pep_db.loc[dog_pep_db.groupby('Ensembl_gene')['Seq_len'].idxmax()]
-used_transcript = list(max_gene_transcript_len_df['Ensembl_transcript'])
-
 
 # Input data
 gatk_vcf = args.gatk_vcf
@@ -203,7 +191,6 @@ def extract_info(each_info):
     # df = pd.DataFrame(data_dict)
     # df.columns = ['AC','AF','AN','DP','ExcessHet','FS','MLEAC','MQ','QD','SOR']
     return data_dict
-
 
 ## process annovar out and extract all of the annovar information
 target_annovar_info = processAnnovar(annovar_gene_file, retro_gene_file, sample_name)
@@ -342,7 +329,6 @@ total_final_out = (
     .sort_values(by="Line", key=natsort_keygen())
     .drop(columns="Line")
 )
-
 # Assign 'bio_tumor' value to the DataFrame
 total_final_out["Bioproject"] = bio_project
 
