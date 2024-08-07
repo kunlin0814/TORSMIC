@@ -1,0 +1,69 @@
+import itertools
+import os
+import sys
+from collections import defaultdict
+
+import numpy as np
+import pandas as pd
+
+
+def parse_protein_database(file_name):
+    proteins = {}
+
+    with open(file_name, "r") as file:
+        current_protein = None
+        current_sequence = []
+
+        for line in file:
+            line = line.strip()
+            if line.startswith("#") == False:
+                if line.startswith(">"):
+                    if current_protein is not None:
+                        proteins[current_protein] = "".join(current_sequence)
+                        current_sequence = []
+                    header_name = line.split(">")[1]
+                    #transcript_name = header_name.split(" ")[0]
+                    current_protein = header_name
+                else:
+                    current_sequence.append(line)
+            else:
+                pass
+        if current_protein is not None:
+            proteins[current_protein] = "".join(current_sequence)
+
+    return proteins
+
+def extract_field(header, field_name):
+    field_start = header.find(field_name)
+    if field_start == -1:
+        return None
+    field_end = header.find(" ", field_start)
+    if field_end == -1:
+        field_end = None
+    field = header[field_start + len(field_name) : field_end]
+    return field.strip().replace(":", "")
+
+def extract_protein_name(header):
+    transcript_symbol = extract_field(header, "transcript")
+    gene_symbol = extract_field(header, "gene_symbol")
+    if gene_symbol:
+        return gene_symbol + "_" + transcript_symbol
+    else:
+        ensemble_gene = extract_field(header, "gene")
+        return ensemble_gene + "_" + transcript_symbol
+    
+base = '/Users/kun-linho/Library/CloudStorage/GoogleDrive-abc730814@gmail.com/My Drive/Canine_Mapping_source/Nucleotide'
+os.chdir(base)
+file = 'Canis_familiaris.CanFam3.1.cds.all.fa'
+longest_transcript = pd.read_csv('CanFam3.1.99_longest_transcript.txt',sep="\t")
+with_gene_transcript_df = parse_protein_database(file)
+with_gene_transcript_df = pd.DataFrame(with_gene_transcript_df.items(),columns=['Transcript',"Sequence"])
+target_transcript ='|'.join(longest_transcript['Ensembl_transcript'].to_list())
+filtered_df = with_gene_transcript_df[with_gene_transcript_df['Transcript'].str.contains(target_transcript)]
+target_dict = dict(zip(filtered_df.Transcript,filtered_df.Sequence))
+
+with open('longest_transcript_canFam3.1.99.fa', 'w') as out:
+    for key, value in target_dict.items():
+        out.write(f">{key}\n")
+        out.write(f"{value}\n")
+        
