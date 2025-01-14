@@ -11,9 +11,7 @@ if (length(args)==0) {
 package_location <- as.character(args[1])
 new_data_file <- as.character(args[2])
 out_file_name <- as.character(args[3])
-canine_longest_file <- as.character(args[4])
-  #'/Volumes/Research/GitHub/TORSMIC/data_source/CanFam3.1.99_longest_transcript.txt'
-keep_old <- as.logical(toupper(args[5]))
+keep_old <- as.logical(toupper(args[4]))
 
 module_location <- paste(package_location,'scripts','somatic_germline_module.R',sep ="/")
 data_source <- paste(package_location,'data_source',sep="/")
@@ -40,9 +38,8 @@ sample_recurrent <- T
 breed_filtering <- T
 wes_rna_filtering <- T
 
-canine_longest_transcript <- fread(canine_longest_file)
+canine_longest_transcript <- fread('CanFam3.1.99_longest_transcript.txt')
 new_data <- fread(new_data_file)
-new_data <- new_data[Ensembl_transcripts %in% canine_longest_transcript$Ensembl_transcript,]
 file <- fread("PassQC_Total_biosample_somatic_germline_sum_03_02_23.txt.gz")
 file <- file[Ensembl_transcripts %in% canine_longest_transcript$Ensembl_transcript,]
 file[Source=='C-bio'| Source=="Cosmic",Source:="Human",]
@@ -242,5 +239,9 @@ file <- file[grepl("Somatic",Status,ignore.case = T),]
 if (keep_old!=T){
   file <- unique(file[!Sample_name %in% old_sample,])
 }
+longest_transcript_results <- copy(file[Ensembl_transcripts %in% canine_longest_transcript$Ensembl_transcript,])
+
 fwrite(file, file = out_file_name, 
+       sep = "\t",eol = "\n",col.names = T, quote = F)
+fwrite(longest_transcript_results, file = paste(out_file_name,'longest_transcript.txt',sep="_"), 
        sep = "\t",eol = "\n",col.names = T, quote = F)
