@@ -2,30 +2,45 @@
 
 ## Overview
 
-TORSMIC is a pipeline designed for identifying somatic mutations in canine tumor samples using RNA-seq data. It utilizes a combination of tools and scripts to perform variant calling, annotation, and classification. The pipeline aims to provide accurate and reliable somatic mutation identification in a tumor-only setting without matching normal samples.
+**TORSMIC** is a pipeline designed for identifying somatic mutations in canine tumor samples using RNA-seq data.  
+It combines multiple bioinformatics tools and custom scripts to perform **variant calling, annotation, and classification**.  
+The pipeline is tailored for **tumor-only analysis**, enabling somatic mutation discovery **without matched normal samples**.  
+
+---
 
 ## Requirements
 
-To run the TORSMIC pipeline, ensure that the following requirements are met:
+### System Tools
+- **Java** ≥ SE8  
+- **Annovar** (version ≥ 2017-07-16)  
+- **GATK** 3.8-1  
+- **Picard** 2.21.6  
+- **Perl** ≥ 5.26.1  
+- **R** ≥ 4.0 (with *data.table* and *tidyverse* libraries installed)
 
-- Python 3.8
-- natsort >= 8.3
-- Pandas >= 1.3
-- Numpy >= 1.24
-- Scikit-learn >= 1.3.0
-- Java >= SE8
-- Annovar (version after 2017 Jul16)
-- GATK/3.8-1
-- picard/2.21.6
-- R Data.table 1.14
+### Python Packages
+- Python ≥ 3.7  
+- natsort ≥ 8.3  
+- pandas ≥ 1.3  
+- numpy ≥ 1.24  
+- scikit-learn ≥ 1.0  
+
+## Installation
+It is recommended to use **Linux/Unix** and a conda environment.
+
+```bash
+# Create environment
+conda create -n torsmic python=3.8 pandas numpy scikit-learn natsort
+conda activate torsmic
+```
 
 ## General Usage
 
 The TORSMIC pipeline utilizes a Unix/Linux shell script and involves several steps, as outlined below:
 
-1. Run `CMT-002_somatic_mutation_pipeline.sh` for each sample to perform variant calling and mutation summary and classifications (mutation also from human or not).
+1. Run `CMT-002_somatic_mutation_pipeline.sh` for each sample to perform variant calling and mutation summary and mutation classification.
 2. Merge the results obtained from individual samples.
-3. Utilize `pipeline_ml_mutation_filtering.sh` to apply machine learning-based mutation filtering and classification to obtain the final mutation results.
+3. Utilize `pipeline_ml_mutation_filtering.sh` to apply machine learning-based mutation filtering and classification to obtain the final mutation classification.
 
 ### Steps to Run the Package
 
@@ -34,10 +49,12 @@ The TORSMIC pipeline utilizes a Unix/Linux shell script and involves several ste
 
 The overall directory structure should resemble the following:
 
-```
+```bash
 base_folder/
-base_folder/star_align_bam_dir/each_sample/each_sample.bam
-base_folder/somatic_output_folder/each_sample/each_sample_final_sample_somatic_sum.txt
+├─ star_align_bam_dir/
+│   └─ each_sample/each_sample.bam
+└─ somatic_output_folder/
+    └─ each_sample/each_sample_final_sample_somatic_sum.txt
 ```
 
 ```bash
@@ -104,8 +121,6 @@ module load Perl/5.26.1-GCCcore-6.4.0
 [16] Alt_reads    (Number of alternative reads detected with GATK)
 [17] Model_prediction (Final mutation results, e.g., germline, somatic, or WT)
 ```
-
-These columns provide valuable information about each mutation detected in the samples, including genomic coordinates, variant allele frequency, gene annotation, consequence, and the final mutation classification based on the machine learning model.
 
 Please refer to the generated "\*ml_filtering.txt" file for detailed information about the mutations identified in the tumor samples.
 
