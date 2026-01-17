@@ -256,14 +256,6 @@ TORSMIC/
 
 ---
 
-## Citation
-
-If you use TORSMIC in your research, please cite:
-
-> Ho, K.L. et al. (2024). TORSMIC: Tumor-Only RNA-seq Somatic Mutation Identification in Canine.  
-> *[Journal/Preprint information to be added]*
-
----
 
 ## Contact
 
