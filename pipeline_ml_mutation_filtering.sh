@@ -15,8 +15,8 @@ pipeline_out_file_name='/scratch/kh31516/UGA/UGA_OSA_pipeline_filtering.txt' ## 
 ml_out_file_name='/scratch/kh31516/UGA/UGA_OSA_ml_filtering.txt' ## the output file from the pipeline with machine learning prediction
 ####
 
-scripts_location="${package_location}/scripts"
-data_source_location="${package_location}/data_source"
+scripts_location="${package_location}/src"
+data_source_location="${package_location}/resources"
 
 ml R/4.0.0-foss-2019b
 
@@ -24,7 +24,7 @@ ml R/4.0.0-foss-2019b
 # new_data_file <- as.character(args[2])
 # out_file_name <- as.character(args[3])
 
-Rscript --vanilla "${scripts_location}/Sapelo2_add_new_data_whole_pipeline.R" \
+Rscript --vanilla "${scripts_location}/R/Sapelo2_add_new_data_whole_pipeline.R" \
 "${package_location}" \
 "${new_add_data}" \
 "${pipeline_out_file_name}"
@@ -32,12 +32,12 @@ Rscript --vanilla "${scripts_location}/Sapelo2_add_new_data_whole_pipeline.R" \
 ml Miniconda3/4.9.2
 source activate /home/kh31516/myenv/py38
 
-cd "$scripts_location"
+cd "${scripts_location}/python"
 
 # model_folder = sys.argv[1]
 # data_test_file = sys.argv[2]
 # final_output = sys.argv[3]
-python "${scripts_location}/Sapelo2_ML_test_pipeline_data.py" \
-"${data_source_location}" \
+python "${scripts_location}/python/Sapelo2_ML_test_pipeline_data.py" \
+"${data_source_location}/models" \
 "${pipeline_out_file_name}" \
 "${ml_out_file_name}"

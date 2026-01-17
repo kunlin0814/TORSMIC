@@ -1,143 +1,273 @@
-# Tumor-only RAN-seq Somatic Mutation Identification in Canine (TORSMIC)
+# TORSMIC
+
+**T**umor-**O**nly **R**NA-seq **S**omatic **M**utation **I**dentification in **C**anine
+
+![Python](https://img.shields.io/badge/Python-≥3.7-blue?logo=python&logoColor=white)
+![R](https://img.shields.io/badge/R-≥4.0-276DC3?logo=r&logoColor=white)
+![Platform](https://img.shields.io/badge/Platform-Linux%2FUnix-lightgrey)
+![License](https://img.shields.io/badge/License-Academic-green)
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Pipeline Workflow](#pipeline-workflow)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Output](#output)
+- [Additional Files](#additional-files)
+- [Repository Structure](#repository-structure)
+- [Citation](#citation)
+- [Contact](#contact)
+
+---
 
 ## Overview
 
-**TORSMIC** is a pipeline designed for identifying somatic mutations in canine tumor samples using RNA-seq data.  
-It combines multiple bioinformatics tools and custom scripts to perform **variant calling, annotation, and classification**.  
-The pipeline is tailored for **tumor-only analysis**, enabling somatic mutation discovery **without matched normal samples**.  
+**TORSMIC** is a bioinformatics pipeline for identifying somatic mutations in canine tumor samples using RNA-seq data. The pipeline combines variant calling, annotation, and machine learning-based classification to enable somatic mutation discovery **without matched normal samples**.
+
+### Key Features
+
+- **Tumor-only analysis** — No matched normal required
+- **Human-to-dog ortholog mapping** — Leverages COSMIC and cBioPortal databases
+- **ML-based classification** — Distinguishes somatic vs. germline mutations
+- **Comprehensive annotation** — Gene-level and variant-level information
+
+---
+
+## Pipeline Workflow
+
+```mermaid
+flowchart TD
+    subgraph Input
+        A[STAR-aligned BAM]
+    end
+
+    subgraph Preprocessing["1. Preprocessing"]
+        B[Picard: Sort & Mark Duplicates]
+    end
+
+    subgraph Calling["2. Variant Calling"]
+        C[GATK: SplitNCigarReads]
+        D[GATK: IndelRealigner]
+        E[GATK: HaplotypeCaller]
+        F[GATK: VariantFiltration]
+    end
+
+    subgraph Filtering["3. Filtering"]
+        G[dbSNP Germline Removal]
+        H[CDS Region Filtering]
+    end
+
+    subgraph Annotation["4. Annotation"]
+        I[ANNOVAR Gene Annotation]
+        J[Human-Dog Ortholog Mapping]
+    end
+
+    subgraph Classification["5. Classification"]
+        K[COSMIC/cBioPortal Matching]
+        L[ML Somatic Prediction]
+    end
+
+    subgraph Output
+        M[Final Mutation Calls]
+    end
+
+    A --> B --> C --> D --> E --> F
+    F --> G --> H --> I --> J --> K --> L --> M
+```
 
 ---
 
 ## Requirements
 
-### System Tools
-- **Java** ≥ SE8  
-- **Annovar** (version ≥ 2017-07-16)  
-- **GATK** 3.8-1  
-- **Picard** 2.21.6  
-- **Perl** ≥ 5.26.1  
-- **R** ≥ 4.0 (with *data.table* and *tidyverse* libraries installed)
+### System Dependencies
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| Java | ≥ SE8 | GATK, Picard |
+| GATK | 3.8-1 | Variant calling |
+| Picard | 2.21.6 | BAM preprocessing |
+| Perl | ≥ 5.26.1 | ANNOVAR |
+| R | ≥ 4.0 | Data processing |
+| Python | ≥ 3.7 | ML pipeline |
 
 ### Python Packages
-- Python ≥ 3.7  
-- natsort ≥ 8.3  
-- pandas ≥ 1.3  
-- numpy ≥ 1.24  
-- scikit-learn ≥ 1.0  
+
+```
+pandas>=1.3
+numpy>=1.24
+scikit-learn>=1.0
+natsort>=8.3
+joblib>=1.0
+```
+
+### R Packages
+
+- `data.table`
+- `tidyverse`
+
+---
 
 ## Installation
-It is recommended to use **Linux/Unix** and a conda environment.
+
+### Option 1: Conda (Recommended)
 
 ```bash
-# Create environment
-conda create -n torsmic python=3.8 pandas numpy scikit-learn natsort
+# Clone the repository
+git clone https://github.com/kunlin0814/TORSMIC.git
+cd TORSMIC
+
+# Create environment from file
+conda env create -f environment.yml
 conda activate torsmic
 ```
 
-## General Usage
-
-The TORSMIC pipeline utilizes a Unix/Linux shell script and involves several steps, as outlined below:
-
-1. Run `CMT-002_somatic_mutation_pipeline.sh` for each sample to perform variant calling and mutation summary and mutation classification.
-2. Merge the results obtained from individual samples.
-3. Utilize `pipeline_ml_mutation_filtering.sh` to apply machine learning-based mutation filtering and classification to obtain the final mutation classification.
-
-### Steps to Run the Package
-
-1. Download the package (Linux/Unix platform is required).
-2. Modify the shell script `CMT-002_somatic_mutation_pipeline.sh` for each sample and specify the actual path for the following directories.
-
-The overall directory structure should resemble the following:
+### Option 2: pip
 
 ```bash
+git clone https://github.com/kunlin0814/TORSMIC.git
+cd TORSMIC
+
+pip install -r requirements.txt
+```
+
+---
+
+## Usage
+
+### Step 1: Run the Somatic Mutation Pipeline
+
+For each sample, configure and run `CMT-002_somatic_mutation_pipeline.sh`:
+
+```bash
+# Required configuration variables
+package_location=''     # Path to TORSMIC package
+bsample=''              # Sample name
+base_folder=''          # Parent directory for results
+bam_file_folder=''      # Path to STAR-aligned BAM files
+bio_tumor=''            # Tumor type and project (e.g., OSA_PRJNA000001)
+reference=''            # Path to CanFam3 reference
+annovar_index=''        # Path to ANNOVAR annotation files
+```
+
+**Expected directory structure:**
+
+```
 base_folder/
-├─ star_align_bam_dir/
-│   └─ each_sample/each_sample.bam
-└─ somatic_output_folder/
-    └─ each_sample/each_sample_final_sample_somatic_sum.txt
+├── star_align_bam_dir/
+│   └── sample_name/sample_name.bam
+└── somatic_output_folder/
+    └── sample_name/sample_name_final_sample_somatic_sum.txt
 ```
+
+### Step 2: Merge Sample Results
+
+Concatenate all `*final_sample_somatic_sum.txt` files from Step 1 into a single table.
+
+### Step 3: ML-based Classification
+
+Configure and run `pipeline_ml_mutation_filtering.sh`:
 
 ```bash
-package_location=''                   # Path to the tumor-only somatic mutation identification package
-bsample=''                            # Sample name you want to use
-base_folder=''                        # Parent directory of the final results for each sample
-bam_file_folder=''                    # Path to the folder containing the bam files aligned with STAR
-bio_tumor=''                          # Specify the tumor type first and the project name separated by '_' (e.g., OSA_PRJNA000001), see also Note:
-reference=''                          # Path to the directory of canfam3 reference sequence
-annovar_index=''                      # Path to the Annovar package for gene annotation
+package_location=''          # Path to TORSMIC package
+new_add_data=''              # Merged results from Step 2
+pipeline_out_file_name=''    # Output: pipeline-filtered results
+ml_out_file_name=''          # Output: ML-classified results
 ```
 
-Note:
-To achieve the best results, we need to set the tumor type the same as our previous naming conventions. Our previously analyzed results include the following tumor types:
-a. Bladder tumor - BLA
-b. Glioma - GLM
-c. Hemangiosarcoma - HSA
-d. Mammary Tumor - MT
-e. Oral melanoma - OM
-f. Osteosarcoma - OSA
-g. Prostate cancer - PRO
+### Tumor Type Codes
 
-If your sample is derived from the same tumor type as listed above, please use the same acronym. However, if your dataset doesn't match the tumor types mentioned above, you can name your tumor type as desired (e.g., OSA_PRJNA000001).
+Use standardized codes for optimal ML performance:
 
-3. Concatenate all the final results derived from `CMT-002_somatic_mutation_pipeline.sh` (results file ending with `*final_sample_somatic_sum.txt`) into a single table.
-4. Run `pipeline_ml_mutation_filtering.sh` by specifying the actual path for the following directories.
+| Tumor Type | Code |
+|------------|------|
+| Bladder tumor | BLA |
+| Glioma | GLM |
+| Hemangiosarcoma | HSA |
+| Mammary Tumor | MT |
+| Oral melanoma | OM |
+| Osteosarcoma | OSA |
+| Prostate cancer | PRO |
 
-```bash
-package_location=''                   # Path to the tumor-only somatic mutation identification package
-new_add_data=''                       # Path to the table where you concatenated the final results for each sample
-pipeline_out_file_name=''             # Output file from the pipeline without machine learning predictions
-ml_out_file_name=''                   # Output file from the pipeline with machine learning predictions
-```
+> **Note:** For new tumor types, use format `CODE_PROJECTID` (e.g., `LYMPH_PRJNA123456`).
 
-5. Required package/software loading: The shell script contains lines for loading required packages/software that are unique to the UGA (Sapelo2) platform. If your platform uses a different approach to load packages/software, make the corresponding changes in the script for the following lines.
+---
 
-```bash
-module load GATK/3.8-1-Java-1.8.0_144
-module load picard/2.21.6-Java-11
-module load Java
-module load R/4.0.0-foss-2019b            # (Requires data.table and tidyverse library installation)
-module load Miniconda3/4.9.2              # (Custom Conda environment with Python 3)
-module load Perl/5.26.1-GCCcore-6.4.0
-```
+## Output
 
-6. Once the shell script execution is finished, the result file "\*ml_filtering.txt" will appear in the specified directory. The file includes various columns representing sample information, variant details, and model predictions. The columns present in the file are as follows:
+The final output `*ml_filtering.txt` contains:
 
-```
-[1] Sample_name
-[2] Bioproject
-[3] VAF   (Variant allele frequency)
-[4] Source    (Mutations that can be matched to the human somatic database or not)
-[5] Consequence
-[6] Gene_name
-[7] Chrom
-[8] Pos   (Mutation start position)
-[9] End   (Mutation end position)
-[10] Ensembl_gene
-[11] Ensembl_transcripts
-[12] Total_protein_change
-[13] Ref    (Reference base)
-[14] Alt    (Alternative base)
-[15] Ref_reads    (Number of reference reads detected with GATK)
-[16] Alt_reads    (Number of alternative reads detected with GATK)
-[17] Model_prediction (Final mutation results, e.g., germline, somatic, or WT)
-```
+| Column | Description |
+|--------|-------------|
+| `Sample_name` | Sample identifier |
+| `Bioproject` | Project accession |
+| `VAF` | Variant allele frequency |
+| `Source` | COSMIC/cBioPortal match status |
+| `Consequence` | Variant consequence |
+| `Gene_name` | Gene symbol |
+| `Chrom` / `Pos` / `End` | Genomic coordinates |
+| `Ensembl_gene` | Ensembl gene ID |
+| `Ensembl_transcripts` | Ensembl transcript IDs |
+| `Total_protein_change` | Amino acid change |
+| `Ref` / `Alt` | Reference and alternate alleles |
+| `Ref_reads` / `Alt_reads` | Read support counts |
+| `Model_prediction` | Classification: `somatic`, `germline`, or `WT` |
 
-Please refer to the generated "\*ml_filtering.txt" file for detailed information about the mutations identified in the tumor samples.
+See [`examples/`](examples/) for sample output.
+
+---
 
 ## Additional Files
 
-In addition to the TORSMIC pipeline, you will need the following files to run the pipeline successfully:
+The pipeline requires supplementary files not included in this repository due to size:
+
+1. **Human-dog protein sequence alignments** (×2 files)
+2. **dbSNP file** for germline variant filtering
+
+> Contact abc730814@gmail.com to obtain these files.
+
+---
+
+## Repository Structure
 
 ```
-[1] Two human-dog protein sequence alignment files
-[2] Annovar package for obtaining dog gene annotation
-[3] A db_snp file to filter known germline variants
+TORSMIC/
+├── CMT-002_somatic_mutation_pipeline.sh    # Main variant calling pipeline
+├── pipeline_ml_mutation_filtering.sh       # ML classification pipeline
+├── requirements.txt                        # Python dependencies
+├── environment.yml                         # Conda environment
+│
+├── src/
+│   ├── python/                             # Python scripts
+│   ├── R/                                  # R scripts
+│   └── java/                               # Java utilities
+│
+├── resources/
+│   ├── annotations/                        # Gene annotation files
+│   ├── references/                         # COSMIC, cBioPortal mappings
+│   └── models/                             # Trained ML model
+│
+├── examples/                               # Example output files
+└── docs/                                   # Additional documentation
 ```
 
-Due to their large file size, these files cannot be included in the GitHub repository. Please contact me at the provided email address if you require these files.
+---
 
-Contact Information:
-Kun-Lin Ho
-Email: abc730814@gmail.com
+## Citation
 
-We will be happy to help and provide any necessary support.
+If you use TORSMIC in your research, please cite:
+
+> Ho, K.L. et al. (2024). TORSMIC: Tumor-Only RNA-seq Somatic Mutation Identification in Canine.  
+> *[Journal/Preprint information to be added]*
+
+---
+
+## Contact
+
+**Kun-Lin Ho**  
+abc730814@gmail.com
+
+Questions, issues, and contributions are welcome!

@@ -15,8 +15,8 @@ bio_tumor='MT_PRJNA000001'          # put the tumor type first and then project 
 
 
 somatic_output_folder=${base_folder}/somatic_results/${bsample} ## the directory where you want to put your result for each sample. It can be separated from the bam file directory  
-scripts_location=${package_location}/scripts                    ## the directory where the scripts of the package locates
-data_source_location=${package_location}/data_source            ## the directory where the datasource of the package locates
+scripts_location=${package_location}/src/python                 ## the directory where the Python scripts are located
+data_source_location=${package_location}/resources               ## the directory where the reference data is located
 
 
 ### For GATK calling on STAR 2-pass alignment 
@@ -24,7 +24,7 @@ bam_file_folder=${base_folder}/results/${bsample}/STAR ## the directory that con
 reference='/work/szlab/dog_resouces/source'  ## the directory that contains canFam3 reference sequence 
 
 ### required file 
-cds_file=${data_source_location}'/UniqueCainineCdsInterval.interval_list'
+cds_file=${data_source_location}'/UniqueCainineCdsInterval.interval_list'  ## CDS interval file
 annovar_index='/work/szlab/Lab_shared_PanCancer/source/annovar_CanFam3.1.99.gtf' ## the directory that contains canine annovar annotation files  
 db_snp='/work/szlab/Lab_shared_PanCancer/source/DbSNP_canFam3_version151-DogSD_Broad_March2022.vcf' 
 
@@ -51,9 +51,9 @@ annovar_gene_annotation() {
     perl "$annovar_index/annotate_variation.pl" --buildver canFam3 "${vcf_file}-PASS-avinput" "$annovar_index"
 
     # Use ensemble ID to append gene names
-    python "${package_location}/Update_Add_GeneName.py" \
+    python "${scripts_location}/Update_Add_GeneName.py" \
     "${vcf_file}-PASS-avinput.exonic_variant_function" \
-    "${data_source_location}/Canis_familiaris.CanFam3.1.99.chr.gtf_geneNamePair.txt" \
+    "${data_source_location}/annotations/Canis_familiaris.CanFam3.1.99.chr.gtf_geneNamePair.txt" \
     "${vcf_file}-PASS-avinput.exonic_variant_function_WithGeneName"
 
     ## append the sample name to the gatk mutation calling result and annovar annotation result
@@ -153,7 +153,7 @@ python "${scripts_location}/Sapelo2_extract_somatic_germline.py" \
 ml Java
 
 # remove germline mutations found in the database
-java -Xmx32g -cp "${scripts_location}/DbSNP_filtering" \
+java -Xmx32g -cp "${package_location}/src/java/DbSNP_filtering" \
 "${db_snp}" \
 "${bam_file_folder}/${bsample}-rg_added_sorted_dedupped_split.realigned.bam.filter.vcf-PASS" \
 "${bam_file_folder}/DB_SNP_filtering_${bsample}-rg_added_sorted_dedupped_split.realigned.bam.filter.vcf" \
